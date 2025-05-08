@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                           // Linguaggio moderno
+    "module": "commonjs",                         // Necessario per Node.js
+    "rootDir": "./src",                           // Dove stanno i tuoi file sorgente .ts
+    "outDir": "./build",                          // Dove verranno messi i .js compilati (se compili)
+    "esModuleInterop": true,                      // Per importare moduli CommonJS senza errori
+    "forceConsistentCasingInFileNames": true,     // Evita problemi su Windows/macOS
+    "strict": true,                               // Buona pratica: abilita i controlli severi
+    "skipLibCheck": true                          // Velocizza la compilazione, utile per i dev
+  },
+  "include": ["src"],                             // Solo la cartella src
+  "exclude": ["node_modules", "build"]            // Esclude output e dipendenze
+}
