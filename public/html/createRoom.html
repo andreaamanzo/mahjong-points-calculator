@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Mahjong Room</title>
+  <link rel="stylesheet" href="public/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body>
+
+  <div class="join-container">
+    <h1 class="page-title">Create a Mahjong Room</h1>
+
+    <form class="join-form" method="post" action="/create-room">
+      <div class="form-group">
+        <label for="creator-name"><i class="fas fa-user"></i> Your Name</label>
+        <input type="text" id="creator-name" name="hostName" required />
+      </div>
+
+      <button type="submit" class="join-button">
+        <i class="fas fa-plus-circle"></i> Create Room
+      </button>
+    </form>
+  </div>
+</body>
+</html>
