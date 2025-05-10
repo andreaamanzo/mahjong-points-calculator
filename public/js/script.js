@@ -1,3 +1,17 @@
+toastr.options = {
+  "positionClass": "toast-bottom-right",
+  "closeButton": true,
+  "progressBar": true,
+  "timeOut": "4000",
+  "extendedTimeOut": "1000",
+  "showDuration": "300",
+  "hideDuration": "300",
+  "showEasing": "swing",
+  "hideEasing": "linear",
+  "showMethod": "fadeIn",
+  "hideMethod": "fadeOut"
+}
+
 let estWind = null
 let mahjong = null
 

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mahjong Points Calculator</title>
+	<!-- Carica jQuery prima di Toastr -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  
+  <!-- Toastr -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+  <link rel="stylesheet" href="public/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body>
+  <div class="room-buttons">
+    <a class="room-button" href="/"><i class="fas fa-right-from-bracket fa-flip-horizontal"></i>Exit</a>
+  </div>
+  
+  <h1 class="page-title">Mah-Jong Room</h1>
+
+  <div class="code-box">
+    <div>Room code:</div> <div id="roomCode">null</div>
+    <button id="copy-code-button" class="copy-button" title="Copy to clipboard">
+        <i class="fas fa-copy"></i>
+    </button>
+  </div>
+
+
+  <div class="grid-container">
+
+  </div>
+
+  <script src="public/js/script.js"></script>
+	<script src="public/js/room.js"></script>
+</body>
+</html>

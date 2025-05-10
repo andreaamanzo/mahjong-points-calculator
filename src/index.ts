@@ -26,8 +26,11 @@ app.get('/join-room', (reqest, reply) => {
 app.post('/join-room', async (request, reply) => {
     const { roomCode, playerName } = request.body as { roomCode: string, playerName: string }
     const results = await joinRoom(roomCode, playerName);
-    console.log(results)
-    reply.send(`Hi ${playerName}, you are in room ${roomCode}`)
+    if (results.room) {
+        reply.redirect(`/room?host=false&roomCode=${results.room.code}&playerName=${playerName}`)
+    } else {
+        reply.status(500).send(results)
+    }
 })
 
 app.get('/create-room', (request, reply) => {
@@ -37,8 +40,16 @@ app.get('/create-room', (request, reply) => {
 app.post('/create-room', async (request, reply) => {
     const { hostName } = request.body as { hostName: string }
     const results = await createRoom(hostName)
-    console.log(results)
-    reply.send(`Hi ${hostName}, your room code is ${results.room.code}`)
+    if (results.room) {
+        reply.redirect(`/room?host=true&roomCode=${results.room.code}&playerName=${hostName}`)
+    } else {
+        reply.status(500).send(results)
+    }
+})
+
+app.get('/room', (request,reply) => {
+    const { host, roomCode, playerName } = request.query as { host: boolean, roomCode: string, playerName: string }
+    return reply.sendFile("html/room.html")
 })
 
 app.listen({ host: configs.SITE_HOST, port: Number(configs.PORT),  }, (err, address) => {
