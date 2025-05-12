@@ -34,7 +34,7 @@ export async function createRoom(roomCode: string): Promise<Room> {
 export async function createPlayer(roomId: number, playerName: string, isHost: boolean): Promise<Player> {
     const [playerResult] = await db.pool.execute<ResultSetHeader>(
         "INSERT INTO players (room_id, name, is_host) VALUES (?, ?, ?)",
-        [roomId, playerName, true]
+        [roomId, playerName, isHost]
     )
 
     return {
