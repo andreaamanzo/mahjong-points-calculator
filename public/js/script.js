@@ -1,15 +1,17 @@
 toastr.options = {
-  "positionClass": "toast-bottom-right",
-  "closeButton": true,
-  "progressBar": true,
-  "timeOut": "4000",
-  "extendedTimeOut": "1000",
-  "showDuration": "300",
-  "hideDuration": "300",
-  "showEasing": "swing",
-  "hideEasing": "linear",
-  "showMethod": "fadeIn",
-  "hideMethod": "fadeOut"
+    "positionClass": "toast-bottom-right",
+    "closeButton": true,
+    "progressBar": true,
+    "timeOut": "4000",
+    "extendedTimeOut": "1000",
+    "showDuration": "300",
+    "hideDuration": "300",
+    "showEasing": "swing",
+    "hideEasing": "linear",
+    "showMethod": "fadeIn",
+    "hideMethod": "fadeOut",
+    "preventDuplicates": true, 
+    "newestOnTop": true 
 }
 
 let estWind = null
@@ -42,9 +44,16 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
 
 document.querySelectorAll('.edit-button').forEach(button => {
     button.addEventListener('click', () => {
-        const nameSpan = button.previousElementSibling
+        const nameSpan = button.closest(".player-name-container").querySelector(".player-name")
         nameSpan.contentEditable = true
         nameSpan.focus()
+        const charsLimit = 15
+        nameSpan.addEventListener("input", () => {
+            if (nameSpan.textContent.length > charsLimit) {
+                nameSpan.textContent = nameSpan.textContent.slice(0, charsLimit)
+                toastr.warning(`Name cannot exceed ${charsLimit} characters`)
+            }
+        })
 
         // Disabilita la modifica quando si perde il focus
         nameSpan.addEventListener('blur', () => {

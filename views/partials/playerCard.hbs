@@ -1,7 +1,12 @@
 <div class="grid-item {{#if isClientPlayer}}client-player{{/if}}">
   <div class="player-name-container">
-    <span class="player-name" contenteditable="false" id="player{{@index}}-name">{{name}}</span>
-    {{#if isClientPlayer}}
+    <span class="player-name" contenteditable="false" id="player{{@index}}-name">
+      {{name}}
+    </span>
+    {{#if isHost}}
+      <span class="host-indicator">(host)</span>
+    {{/if}}
+    {{#if isEditable}}
       <button class="edit-button" title="Edit name">
         <i class="fas fa-pen-to-square"></i>
       </button>

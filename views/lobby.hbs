@@ -1,0 +1,39 @@
+<div class="room-buttons">
+  <a class="room-button" href="/"><i class="fas fa-right-from-bracket fa-flip-horizontal"></i>Exit</a>
+</div>
+
+<h1 class="page-title">Mah-Jong Lobby</h1>
+
+<div class="code-box">
+  <div>Room code:</div>
+  <div id="roomCode">{{roomCode}}</div>
+  <button id="copy-code-button" class="copy-button" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+</div>
+
+<h2 class="page-title small">Players ({{players.length}}/4):</h2>
+
+<div class="grid-container">
+  {{#each players}}
+    {{> playerCardMinimal this}}
+  {{/each}}
+
+  {{#each (emptySlots players.length 4)}}
+    <div class="grid-item empty">Empty Slot</div>
+  {{/each}}
+</div>
+
+{{#if isHost}}
+	<button id="start-game-button" class="general-button" {{#unless (eq players.length 4)}}disabled{{/unless}}>
+		{{#if (eq players.length 4)}}
+			<i class="fas fa-chess-board"></i> Start Game
+		{{else}}
+			<i class="fas fa-hourglass-half"></i> Waiting for players...
+		{{/if}}
+	</button>
+{{else}}
+    <p class="message">Waiting for the host to start the game...</p>
+{{/if}}
+
+<script src="/public/js/room.js"></script>

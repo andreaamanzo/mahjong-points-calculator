@@ -18,8 +18,34 @@ app.register(fastifyView, {
   options: {
     partials: {
       playerCard: "partials/playerCard.hbs",
+      playerCardMinimal: "partials/playerCardMinimal.hbs",
     }
   }
+})
+
+handlebars.registerHelper('eq', function (a, b) {
+  return a === b
+})
+
+handlebars.registerHelper('neq', function (a, b) {
+  return a !== b
+})
+
+handlebars.registerHelper('lt', function (a, b) {
+  return a < b
+})
+
+handlebars.registerHelper('gt', function (a, b) {
+  return a > b
+})
+
+handlebars.registerHelper('inRange', function (a, min, max) {
+  return a >= min && a <= max
+})
+
+handlebars.registerHelper('emptySlots', function (count, max) {
+  const diff = max - count
+  return new Array(diff).fill(null)
 })
 
 app.register(require('@fastify/static'), {
@@ -32,7 +58,9 @@ app.register(require("@fastify/formbody"))
 app.get('/', (request, reply) => {
 	const players = Array.from({ length: 4 }, (_, i) => ({
 		name: `Player ${i + 1}`,
-		isHost: false
+		isHost: false,
+    isClientPlayer: false,
+    isEditable: true
 	}))
   return reply.view('home', { title: 'Mahjong Points Calculator', players })
 })
@@ -45,7 +73,7 @@ app.post('/join-room', async (request, reply) => {
   const { roomCode, playerName } = request.body as { roomCode: string, playerName: string }
   const results = await joinRoom(roomCode, playerName);
   if (results.success) {
-    reply.redirect(`/room?host=false&roomCode=${results.room.code}&playerId=${results.player.id}`)
+    reply.redirect(`/lobby-room?host=false&roomCode=${results.room.code}&playerId=${results.player.id}`)
   } else {
     reply.status(500).send(results)
   }
@@ -59,23 +87,25 @@ app.post('/create-room', async (request, reply) => {
   const { hostName } = request.body as { hostName: string }
   const results = await hostCreateNewRoom(hostName)
   if (results.success) {
-    reply.redirect(`/room?host=true&roomCode=${results.room.code}&playerId=${results.player.id}`)
+    reply.redirect(`/lobby-room?host=true&roomCode=${results.room.code}&playerId=${results.player.id}`)
   } else {
     reply.status(500).send(results)
   }
 })
 
-app.get('/room', async (request, reply) => {
-  const { host, roomCode, playerId } = request.query as { host: boolean, roomCode: string, playerId: string }
+app.get('/lobby-room', async (request, reply) => {
+  const { host, roomCode, playerId } = request.query as { host: string, roomCode: string, playerId: string }
   const results = await getPlayersInRoom(roomCode)
   if (results.success) {
     const players = results.players.map(player => {
       return {
         ...player,
-        isClientPlayer: player.id === parseInt(playerId)
+        isClientPlayer: player.id === parseInt(playerId),
+        isEditable: player.id === parseInt(playerId)
       }
     })
-    return reply.view('room', { title: 'Mah-Jong room', players })
+    const isHost = (host === "true" ? true : false)
+    return reply.view('lobby', { title: 'Mah-Jong room', players, isHost, roomCode })
 
   }
 })

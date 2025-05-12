@@ -1,10 +1,10 @@
 html, body {
   display: flex;
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: center;
   flex-direction: column;
-  min-height: 100vh;
 	min-width: 550px;
+  min-height: 90vh;
   margin: 0;
   background: linear-gradient(to bottom right, #ffecd2, #fcb69f);
   font-family: "Noto Sans", sans-serif;
@@ -14,7 +14,7 @@ html, body {
       rgba(255, 255, 255, 0.7)
     ),
     url("../images/background.png");
-  /* background-blend-mode: lighten; */
+  background-blend-mode: lighten;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -36,11 +36,14 @@ body {
   width: 100%;
 }
 
+.page-title.small {
+  font-size: 1.6rem;
+}
+
 .grid-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
-  /* width: 100%; */
   max-width: 700px;
   margin: 0 auto;
 }
@@ -52,13 +55,25 @@ body {
 }
 
 .grid-item {
+  box-sizing: border-box;
   background-color: #fff8f0;
   border: 2px solid #0a0a0a;
   border-radius: 8px;
   padding: 1.2rem;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
 	max-width: 600px;
+  min-height: 80px;
+}
+
+.grid-item.empty {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 2px dashed #bb0000;
+  color: #bb0000;
+  font-style: italic;
 }
 
 .grid-item.client-player {
@@ -68,16 +83,17 @@ body {
 
 .player-name-container {
   display: flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   color: #8c1c13;
 }
 
 .player-name {
   font-weight: bold;
   font-size: 16px;
-  padding: 5px 10px;
+  padding: 5px ;
 }
 
 .edit-button {
@@ -176,13 +192,13 @@ input[type="radio"]:checked + .switch-label::after {
 }
 
 .action-container {
-  margin-top: 30px;
   width: 100%;
   text-align: center;
 }
 
-.calculate-button {
+.general-button {
   padding: 12px 24px;
+  margin-top: 40px;
   font-size: 16px;
   font-weight: bold;
   color: white;
@@ -193,11 +209,18 @@ input[type="radio"]:checked + .switch-label::after {
   transition: background-color 0.3s;
 }
 
-.calculate-button:hover {
+.general-button:disabled {
+  background-color: #db1e1e;
+  color: #ffffff;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.general-button:hover {
   background-color: #8c1c13;
 }
 
-.calculate-button i {
+.general-button i {
   margin-right: 8px;
 }
 
@@ -381,7 +404,7 @@ input[type="number"]::-webkit-outer-spin-button {
   align-items: center;
   gap: 10px;
   padding: 15px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   background-color: rgba(255, 248, 240, 0.95);
   border: 3px solid #bb0000;
   border-radius: 10px;
@@ -405,6 +428,15 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .copy-button:hover {
   color: #8c1c13;
+}
+
+.message {
+  font-size: 1.2rem;
+  color: #bb0000;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  margin-top: 40px;
 }
 
 /* TOASTR */

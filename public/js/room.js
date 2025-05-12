@@ -1,9 +1,4 @@
 const urlParams = new URLSearchParams(window.location.search)
-const roomCode = urlParams.get("roomCode")
-
-if (roomCode) {
-  document.getElementById("roomCode").textContent = `${roomCode}`
-}
 
 document.getElementById("copy-code-button").addEventListener("click", () => {
   const code = document.getElementById("roomCode").textContent
@@ -19,9 +14,17 @@ document.getElementById("copy-code-button").addEventListener("click", () => {
 
 document.querySelectorAll(".edit-button").forEach((button) => {
   button.addEventListener("click", () => {
-    const nameSpan = button.previousElementSibling
+    const nameSpan = button.closest(".player-name-container").querySelector(".player-name")
     nameSpan.contentEditable = true
     nameSpan.focus()
+    const charsLimit = 15
+    nameSpan.addEventListener("input", () => {
+      if (nameSpan.textContent.length > charsLimit) {
+        nameSpan.textContent = nameSpan.textContent.slice(0, charsLimit)
+        toastr.warning(`Name cannot exceed ${charsLimit} characters`)
+      }
+    })
+    console.log(nameSpan)
 
     nameSpan.addEventListener("blur", () => {
       const newName = nameSpan.textContent.trim()

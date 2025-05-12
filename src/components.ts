@@ -57,6 +57,17 @@ export async function joinRoom(roomCode: string, playerName: string): Promise<Jo
       }
     }
 
+    const players = await getPlayers(room.id)
+
+    if (players.length >= 4) {
+      return {
+        success: false,
+        message: "room is full",
+        room: null,
+        player: null,
+      }
+    }
+
     const player = await createPlayer(room.id, playerName, false)
 
     return {
