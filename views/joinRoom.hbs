@@ -1,0 +1,23 @@
+<div class="room-buttons">
+  <a class="room-button" href="/"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div class="join-container">
+  <h1 class="page-title">Join a Mahjong Room</h1>
+
+  <form class="join-form" method="post" action="/join-room">
+    <div class="form-group">
+      <label for="playerName"><i class="fas fa-user"></i> Your Name</label>
+      <input type="text" id="playerName" name="playerName" required />
+    </div>
+
+    <div class="form-group">
+      <label for="roomCode"><i class="fas fa-key"></i> Room Code</label>
+      <input type="text" id="roomCode" name="roomCode" required />
+    </div>
+
+    <button type="submit" class="join-button">
+      <i class="fas fa-door-open"></i> Join Room
+    </button>
+  </form>
+</div>

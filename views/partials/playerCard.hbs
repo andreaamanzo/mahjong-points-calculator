@@ -1,0 +1,30 @@
+<div class="grid-item {{#if isClientPlayer}}client-player{{/if}}">
+  <div class="player-name-container">
+    <span class="player-name" contenteditable="false" id="player{{@index}}-name">{{name}}</span>
+    {{#if isClientPlayer}}
+      <button class="edit-button" title="Edit name">
+        <i class="fas fa-pen-to-square"></i>
+      </button>
+    {{/if}}
+  </div>
+  <div class="input-points-wrapper">
+    <div class="input-group">
+      <label>Points</label>
+      <input type="number" class="player-input" value="0" min="0" id="player{{@index}}-points"/>
+    </div>
+    <div class="input-group">
+      <label>Doubles</label>
+      <input type="number" class="player-input" value="0" min="0" id="player{{@index}}-doubles"/>
+    </div>
+  </div>
+  <label class="switch-wrapper">
+    <span class="label-text">Est Wind</span>
+    <input type="radio" name="estWindPlayer" id="player{{@index}}-estWind"/>
+    <span class="switch-label"></span>
+  </label>
+  <label class="switch-wrapper">
+    <span class="label-text">Mah-Jong</span>
+    <input type="radio" name="mahjongPlayer" id="player{{@index}}-mahjong"/>
+    <span class="switch-label"></span>
+  </label>
+</div>

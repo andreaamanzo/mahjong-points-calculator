@@ -61,6 +61,11 @@ body {
 	max-width: 600px;
 }
 
+.grid-item.client-player {
+  border: 5px solid #ffd700;
+  box-shadow: 0 0 10px #ffd700;
+}
+
 .player-name-container {
   display: flex;
   align-items: center;

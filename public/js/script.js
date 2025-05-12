@@ -78,7 +78,7 @@ function calculatePoints()
         return
     }
 
-    const players = [1, 2, 3, 4].map(i => {
+    const players = [0, 1, 2, 3].map(i => {
         const name = document.getElementById(`player${i}-name`).innerText
         const doubles = parseInt(document.getElementById(`player${i}-doubles`).value)
         if (isNaN(doubles)) {
@@ -115,7 +115,6 @@ function calculatePoints()
         }
     })
 
-    console.log(players)
 
     const tbody = document.getElementById('results-body')
     tbody.innerHTML = ""

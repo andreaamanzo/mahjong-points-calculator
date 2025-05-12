@@ -1,0 +1,38 @@
+<div class="room-buttons">
+  <a class="room-button" href="/join-room"><i class="fas fa-door-open"></i> Join Room</a>
+  <a class="room-button" href="/create-room"><i class="fas fa-plus-circle"></i> Create Room</a>
+</div>
+
+<h1 class="page-title">Mah-Jong Points Calculator</h1>
+
+<div class="grid-container">
+  {{#each players}}
+    {{> playerCard this}}
+  {{/each}}
+</div>
+
+<div class="action-container">
+    <button class="calculate-button" onclick="calculatePoints()">
+      <i class="fas fa-calculator"></i> Calculate Points
+    </button>
+  </div>
+
+<div class="results-container">
+	<h2>Results</h2>
+	<table class="results-table">
+		<thead>
+			<tr>
+				<th>Player</th>
+				<th>Base Points</th>
+				<th>Est Wind</th>
+				<th>Mah-Jong</th>
+				<th>Total</th>
+			</tr>
+		</thead>
+		<tbody id="results-body">
+			<!-- I risultati verranno inseriti qui via JS -->
+		</tbody>
+	</table>
+</div>
+
+
