@@ -1,7 +1,7 @@
-import { CreateRoomReturnType, GetPlayersInRoomReturnType, JoinRoomReturnType, RenamePlayerReturnType } from "./types"
-import { createPlayer, createRoom, getPlayers, getRoom, renamePlayer as renamePlayerDb } from "./dbComponents"
+import { CreateRoomReturnType, DeletePlayerReturnType, DeleteRoomReturnType, GetPlayersInRoomReturnType, JoinRoomReturnType, RenamePlayerReturnType } from "./types"
+import { createPlayer, createRoom, deletePlayer, deleteRoom, getPlayers, getRoom, renamePlayer as renamePlayerDb } from "./dbComponents"
 
-export async function hostCreateNewRoom(hostName: string): Promise<CreateRoomReturnType> {
+export async function createRoomComponent(hostName: string): Promise<CreateRoomReturnType> {
   let roomCode = ""
 
   for (let i = 0; i < 5; i++) {
@@ -148,8 +148,60 @@ export async function renamePlayerComponent(playerId: number, newName: string): 
   }
 }
 
+export async function deletePlayerComponent(playerId: number): Promise<DeletePlayerReturnType> {
+  try {
+    const deletedPlayer = await deletePlayer(playerId)
+    if (!deletedPlayer) {
+      return {
+        success: false,
+        message: "Player not found",
+        player: null
+      }
+    }
+
+    return {
+      success: true,
+      message: "Player deleted",
+      player: deletedPlayer
+    }
+  } catch (error) {
+    console.error("Errore nella cancellazione del giocatore:", error)
+    return {
+      success: false,
+      message: "Database error",
+      player: null
+    }
+  }
+}
+
+export async function deleteRoomComponent(roomCode: string): Promise<DeleteRoomReturnType> {
+  try {
+    const deletedRoom = await deleteRoom(roomCode)
+    if (!deletedRoom) {
+      return {
+        success: false,
+        message: "Room not found",
+        room: null
+      }
+    }
+
+    return {
+      success: true,
+      message: "Room deleted",
+      room: deletedRoom
+    }
+  } catch (error) {
+    console.error("Errore nella cancellazione della stanza:", error)
+    return {
+      success: false,
+      message: "Database error",
+      room: null
+    }
+  }
+}
+
 export default {
-  hostCreateNewRoom,
+  createRoomComponent,
   joinRoom,
   getPlayersInRoom,
   renamePlayerComponent,

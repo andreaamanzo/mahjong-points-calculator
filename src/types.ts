@@ -44,3 +44,15 @@ export type RenamePlayerReturnType = {
   message: string,
   player: null
 }
+
+export type DeletePlayerReturnType = RenamePlayerReturnType
+
+export type DeleteRoomReturnType = {
+  success: true,
+  message: string,
+  room: Room
+} | {
+  success: false,
+  message: string,
+  room: null
+}

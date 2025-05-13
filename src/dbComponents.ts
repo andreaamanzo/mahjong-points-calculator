@@ -57,6 +57,24 @@ export async function getPlayers(roomId: number): Promise<Player[]> {
     }))
 }
 
+export async function getPlayer(playerId: number): Promise<Player | null> {
+    const [playerRows] = await db.pool.execute<RowDataPacket[]>(
+        "SELECT id, name, is_host FROM players WHERE id = ?",
+        [playerId]
+    )
+
+    if (playerRows.length === 0) {
+        return null
+    }
+
+    const player = playerRows[0]
+    return {
+        id: player.id,
+        name: player.name,
+        isHost: player.is_host,
+    }
+}
+
 export async function renamePlayer(playerId: number, newName: string): Promise<Player | null> {
     await db.pool.execute(
         "UPDATE players SET name = ? WHERE id = ?",
@@ -78,4 +96,34 @@ export async function renamePlayer(playerId: number, newName: string): Promise<P
         name: player.name,
         isHost: player.is_host,
     }
+}
+
+export async function deletePlayer(playerId: number): Promise<Player | null> {
+    const player = getPlayer(playerId)
+
+    if (!player) {
+        return null
+    }
+
+    await db.pool.execute(
+        "DELETE FROM players WHERE id = ?",
+        [playerId]
+    )
+
+    return player
+}
+
+export async function deleteRoom(roomCode: string): Promise<Room | null> {
+    const room = await getRoom(roomCode)
+
+    if (!room) {
+        return null
+    }
+
+    await db.pool.execute(
+        "DELETE FROM rooms WHERE id = ?",
+        [room.id]
+    )
+
+    return room
 }
