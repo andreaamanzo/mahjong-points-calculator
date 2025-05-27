@@ -3,11 +3,14 @@ import { FastifyStaticOptions } from "@fastify/static"
 import { join } from 'path'
 import fastifyView from '@fastify/view'
 import handlebars from 'handlebars'
+import { registerHandlebarsHelpers } from './handlebarsHelpers'
 import configs from "./configs"
 import { createRoomComponent, joinRoom, getPlayersInRoom, renamePlayerComponent, deletePlayerComponent, deleteRoomComponent } from "./components"
 import { Player, Room } from "./types"
 
 const app: FastifyInstance = fastify()
+
+registerHandlebarsHelpers()
 
 app.register(fastifyView, {
   engine: { handlebars },
@@ -23,30 +26,6 @@ app.register(fastifyView, {
   }
 })
 
-handlebars.registerHelper('eq', function (a, b) {
-  return a === b
-})
-
-handlebars.registerHelper('neq', function (a, b) {
-  return a !== b
-})
-
-handlebars.registerHelper('lt', function (a, b) {
-  return a < b
-})
-
-handlebars.registerHelper('gt', function (a, b) {
-  return a > b
-})
-
-handlebars.registerHelper('inRange', function (a, min, max) {
-  return a >= min && a <= max
-})
-
-handlebars.registerHelper('emptySlots', function (count, max) {
-  const diff = max - count
-  return new Array(diff).fill(null)
-})
 
 app.register(require('@fastify/static'), {
   root: join(__dirname, '../public'),
@@ -62,6 +41,7 @@ app.get('/', (request, reply) => {
     isClientPlayer: false,
     isEditable: true
 	}))
+
   return reply.view('home', { title: 'Mahjong Points Calculator', players })
 })
 

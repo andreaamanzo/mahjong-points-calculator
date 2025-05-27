@@ -143,6 +143,14 @@ body {
   background-color: #fffaf5;
 }
 
+.player-input:disabled {
+  background-color: #f0e6e6;
+  color: #000000;
+  border-color: #aaa;
+  cursor: default;
+  opacity: 0.8;
+}
+
 .switch-wrapper {
   display: flex;
   align-items: center;
@@ -151,6 +159,19 @@ body {
   margin-top: 10px;
   cursor: pointer;
   user-select: none;
+}
+
+.switch-disabled {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.switch-disabled .label-text {
+  color: #000000;
+}
+
+.switch-disabled .switch-label {
+  background-color: #f0e6e6;
 }
 
 .label-text {
