@@ -5,8 +5,9 @@ export type Player = {
 }
 
 export type Room = {
-    id: number,
-    code: string,
+  id: number,
+  code: string,
+  isStarted: boolean
 }
 
 export type CreateRoomReturnType = {
@@ -56,3 +57,5 @@ export type DeleteRoomReturnType = {
   message: string,
   room: null
 }
+
+export type StartRoomReturnType = DeleteRoomReturnType

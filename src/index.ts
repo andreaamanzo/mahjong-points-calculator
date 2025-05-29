@@ -5,8 +5,9 @@ import fastifyView from '@fastify/view'
 import handlebars from 'handlebars'
 import { registerHandlebarsHelpers } from './handlebarsHelpers'
 import configs from "./configs"
-import { createRoomComponent, joinRoom, getPlayersInRoom, renamePlayerComponent, deletePlayerComponent, deleteRoomComponent } from "./components"
+import { createRoomComponent, joinRoom, getPlayersInRoom, renamePlayerComponent, deletePlayerComponent, deleteRoomComponent, startRoomComponent } from "./components"
 import { Player, Room } from "./types"
+import { getRoom } from "./dbComponents"
 
 const app: FastifyInstance = fastify()
 
@@ -79,6 +80,11 @@ app.post('/create-room', async (request, reply) => {
 
 app.get('/lobby-room', async (request, reply) => {
   const { isHost: host, roomCode, playerId } = request.query as { isHost: string, roomCode: string, playerId: string }
+  const isHost = (host === "true" ? true : false)
+  const room = await getRoom(roomCode)
+  if (room?.isStarted) {
+    return reply.redirect(`/room?isHost=${isHost}&roomCode=${roomCode}&playerId=${playerId}`)
+  }
   const results = await getPlayersInRoom(roomCode)
   if (results.success) {
     const players = results.players.map(player => {
@@ -88,8 +94,7 @@ app.get('/lobby-room', async (request, reply) => {
         isEditable: player.id === parseInt(playerId)
       }
     })
-    const isHost = (host === "true" ? true : false)
-    return reply.view('lobby', { title: 'Mah-Jong room', players, isHost, roomCode })
+    return reply.view('lobby', { title: 'Mah-Jong lobby', players, isHost, roomCode })
   } else {
     return reply.status(404).view("error", {
       statusCode: 404,
@@ -97,6 +102,33 @@ app.get('/lobby-room', async (request, reply) => {
       message: `The room code "${roomCode}" does not exist or is no longer available.`
     })
   }
+})
+
+app.get('/room', async (request, reply) => {
+  const { isHost: host, roomCode, playerId } = request.query as { isHost: string, roomCode: string, playerId: string }
+  const isHost = (host === "true" ? true : false)
+  const room = await getRoom(roomCode)
+  if (!(room?.isStarted)) {
+    return reply.redirect(`/lobby-room?isHost=${isHost}&roomCode=${roomCode}&playerId=${playerId}`)
+  }
+  const results = await getPlayersInRoom(roomCode)
+  if (results.success) {
+    const players = results.players.map(player => {
+      return {
+        ...player,
+        isClientPlayer: player.id === parseInt(playerId),
+        isEditable: player.id === parseInt(playerId)
+      }
+    })
+    return reply.view('room', { title: 'Mah-Jong room', players, isHost, roomCode })
+  } else {
+    return reply.status(404).view("error", {
+      statusCode: 404,
+      title: "Room Not Found",
+      message: `The room code "${roomCode}" does not exist or is no longer available.`
+    })
+  }
+
 })
 
 app.post('/api/rename-player', async (request, reply) => {
@@ -122,6 +154,16 @@ app.post('/api/delete-player', async (request, reply) => {
 app.post('/api/delete-room', async (request, reply) => {
   const { roomCode } = request.body as { roomCode: string }
   const results = await deleteRoomComponent(roomCode)
+  if (results.success) {
+    reply.send(results)
+  } else {
+    reply.status(500).send(results)
+  }
+})
+
+app.post('/api/start-room', async (request, reply) => {
+  const { roomCode } = request.body as { roomCode: string }
+  const results = await startRoomComponent(roomCode)
   if (results.success) {
     reply.send(results)
   } else {

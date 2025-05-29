@@ -4,7 +4,7 @@ import { Player, Room } from "./types"
 
 export async function getRoom(roomCode: string): Promise<Room | null> {
     const [rooms] = await db.pool.execute<RowDataPacket[]>(
-        "SELECT id, code FROM rooms WHERE code = ?",
+        "SELECT id, code, is_started FROM rooms WHERE code = ?",
         [roomCode]
     )
 
@@ -16,6 +16,7 @@ export async function getRoom(roomCode: string): Promise<Room | null> {
     return {
         id: room.id,
         code: room.code,
+        isStarted: room.is_started
     }
 }
 
@@ -28,7 +29,21 @@ export async function createRoom(roomCode: string): Promise<Room> {
     return {
         id: roomResult.insertId,
         code: roomCode,
+        isStarted: false
     }
+}
+
+export async function startRoom(roomCode: string): Promise<Room | null> {
+    const [result] = await db.pool.execute<ResultSetHeader>(
+        "UPDATE rooms SET is_started = 1 WHERE code = ?",
+        [roomCode]
+    )
+
+    if (result.affectedRows === 0) {
+        return null
+    }
+
+    return getRoom(roomCode)
 }
 
 export async function createPlayer(roomId: number, playerName: string, isHost: boolean): Promise<Player> {

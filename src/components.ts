@@ -1,5 +1,5 @@
-import { CreateRoomReturnType, DeletePlayerReturnType, DeleteRoomReturnType, GetPlayersInRoomReturnType, JoinRoomReturnType, RenamePlayerReturnType } from "./types"
-import { createPlayer, createRoom, deletePlayer, deleteRoom, getPlayers, getRoom, renamePlayer as renamePlayerDb } from "./dbComponents"
+import { CreateRoomReturnType, DeletePlayerReturnType, DeleteRoomReturnType, GetPlayersInRoomReturnType, JoinRoomReturnType, RenamePlayerReturnType, StartRoomReturnType } from "./types"
+import { createPlayer, createRoom, deletePlayer, deleteRoom, getPlayers, getRoom, renamePlayer as renamePlayerDb, startRoom } from "./dbComponents"
 
 export async function createRoomComponent(hostName: string): Promise<CreateRoomReturnType> {
   let roomCode = ""
@@ -83,6 +83,32 @@ export async function joinRoom(roomCode: string, playerName: string): Promise<Jo
       message: "Database error", 
       player: null, 
       room: null 
+    }
+  }
+}
+
+export async function startRoomComponent(roomCode: string): Promise<StartRoomReturnType> {
+  try {
+    const room = await startRoom(roomCode)
+    if (!room) {
+      return {
+        success: false,
+        message: "Room not found",
+        room: null,
+      }
+    }
+
+    return {
+      success: true,
+      message: "Room started",
+      room,
+    }
+  } catch (error) {
+    console.error("Errore nell'avvio della stanza:", error)
+    return {
+      success: false,
+      message: "Database error",
+      room: null,
     }
   }
 }
