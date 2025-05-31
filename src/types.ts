@@ -10,6 +10,22 @@ export type Room = {
   isStarted: boolean
 }
 
+export type Score = {
+  id: number,
+  playerId: number
+  points: number,
+  doubles: number,
+  estWind: boolean,
+  mahjong: boolean
+}
+
+export type Round = {
+  id: number,
+  roundNumber: number,
+  roomId: number,
+  scores: [Score, Score, Score, Score]
+}
+
 export type CreateRoomReturnType = {
   success: true,
   message: string,
@@ -59,3 +75,13 @@ export type DeleteRoomReturnType = {
 }
 
 export type StartRoomReturnType = DeleteRoomReturnType
+
+export type GetLastRoundReturnType = {
+  success: true,
+  message: string,
+  round: Round
+} | {
+  success: false,
+  message: string,
+  round: null
+}

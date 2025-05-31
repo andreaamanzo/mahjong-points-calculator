@@ -41,48 +41,6 @@ document.querySelectorAll(".edit-button").forEach((button) => {
   })
 })
 
-
-document.getElementById("exit-button").addEventListener("click", () => {
-  if (isHost) {
-    fetch("/api/delete-room", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ roomCode }),
-    })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to delete room")
-      }
-      
-      window.location.href = '/'
-    })
-    .catch((error) => {
-      toastr.error("Failed to exit. Please try again.")
-      console.error(error)
-    })
-  } else {
-    fetch("/api/delete-player", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ playerId }),
-    })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to delete player")
-      }
-      window.location.href = '/'
-    })
-    .catch((error) => {
-      toastr.error("Failed to exit. Please try again.")
-      console.error(error)
-    })
-  }
-})
-
 document.getElementById("start-game-button").addEventListener("click", async (event) => {
   const button = event.currentTarget
   if (button.disabled) return

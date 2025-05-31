@@ -5,7 +5,7 @@ import fastifyView from '@fastify/view'
 import handlebars from 'handlebars'
 import { registerHandlebarsHelpers } from './handlebarsHelpers'
 import configs from "./configs"
-import { createRoomComponent, joinRoom, getPlayersInRoom, renamePlayerComponent, deletePlayerComponent, deleteRoomComponent, startRoomComponent } from "./components"
+import { createRoomComponent, joinRoom, getPlayersInRoom, renamePlayerComponent, deletePlayerComponent, deleteRoomComponent, startRoomComponent, getLastRoundComponent } from "./components"
 import { Player, Room } from "./types"
 import { getRoom } from "./dbComponents"
 
@@ -111,11 +111,15 @@ app.get('/room', async (request, reply) => {
   if (!(room?.isStarted)) {
     return reply.redirect(`/lobby-room?isHost=${isHost}&roomCode=${roomCode}&playerId=${playerId}`)
   }
-  const results = await getPlayersInRoom(roomCode)
-  if (results.success) {
-    const players = results.players.map(player => {
+  const playersResults = await getPlayersInRoom(roomCode)
+  const lastRoundResults = await getLastRoundComponent(roomCode)
+  if (playersResults.success && lastRoundResults.success) {
+    const players = playersResults.players.map(player => {
+      const playerScore = lastRoundResults.round.scores.find(s => s.playerId == player.id)
+
       return {
         ...player,
+        playerScore,
         isClientPlayer: player.id === parseInt(playerId),
         isEditable: player.id === parseInt(playerId)
       }

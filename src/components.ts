@@ -1,5 +1,5 @@
-import { CreateRoomReturnType, DeletePlayerReturnType, DeleteRoomReturnType, GetPlayersInRoomReturnType, JoinRoomReturnType, RenamePlayerReturnType, StartRoomReturnType } from "./types"
-import { createPlayer, createRoom, deletePlayer, deleteRoom, getPlayers, getRoom, renamePlayer as renamePlayerDb, startRoom } from "./dbComponents"
+import { CreateRoomReturnType, DeletePlayerReturnType, DeleteRoomReturnType, GetLastRoundReturnType, GetPlayersInRoomReturnType, JoinRoomReturnType, RenamePlayerReturnType, StartRoomReturnType } from "./types"
+import { createPlayer, createRoom, deletePlayer, deleteRoom, getPlayers, getRoom, renamePlayer as renamePlayerDb, startRoom, getLastRound } from "./dbComponents"
 
 export async function createRoomComponent(hostName: string): Promise<CreateRoomReturnType> {
   let roomCode = ""
@@ -202,7 +202,15 @@ export async function deletePlayerComponent(playerId: number): Promise<DeletePla
 
 export async function deleteRoomComponent(roomCode: string): Promise<DeleteRoomReturnType> {
   try {
-    const deletedRoom = await deleteRoom(roomCode)
+    const room = await getRoom(roomCode)
+    if (!room) {
+      return {
+        success: false,
+        message: "Room not found",
+        room: null
+      }
+    }
+    const deletedRoom = await deleteRoom(room.id)
     if (!deletedRoom) {
       return {
         success: false,
@@ -222,6 +230,39 @@ export async function deleteRoomComponent(roomCode: string): Promise<DeleteRoomR
       success: false,
       message: "Database error",
       room: null
+    }
+  }
+}
+
+export async function getLastRoundComponent(roomCode: string): Promise<GetLastRoundReturnType> {
+  try {
+    const room = await getRoom(roomCode)
+    if (!room) {
+      return {
+        success: false,
+        message: "Room not found",
+        round: null
+      }
+    }
+    const round = await getLastRound(room.id)
+    if (!round) {
+      return {
+        success: false,
+        message: "No round found",
+        round: null
+      }
+    }
+    return {
+      success: true,
+      message: "Last round retrieved",
+      round
+    }
+  } catch (error) {
+    console.error("Errore nel recupero dell'ultimo round:", error)
+    return {
+      success: false,
+      message: "Database error",
+      round: null
     }
   }
 }

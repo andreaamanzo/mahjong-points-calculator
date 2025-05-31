@@ -15,22 +15,21 @@
   <div class="input-points-wrapper">
     <div class="input-group">
       <label>Points</label>
-      <input type="number" class="player-input" value="0" min="0" id="player{{@index}}-points" {{#unless isEditable}}disabled{{/unless}}/>
+      <input type="number" class="player-input" value="{{playerScore.points}}" min="0" id="player{{@index}}-points" {{#unless isEditable}}disabled{{/unless}}/>
     </div>
     <div class="input-group">
       <label>Doubles</label>
-      <input type="number" class="player-input" value="0" min="0" id="player{{@index}}-doubles" {{#unless isEditable}}disabled{{/unless}}/>
+      <input type="number" class="player-input" value="{{playerScore.doubles}}" min="0" id="player{{@index}}-doubles" {{#unless isEditable}}disabled{{/unless}}/>
     </div>
   </div>
   <label class="switch-wrapper {{#unless isEditable}}switch-disabled{{/unless}}">
     <span class="label-text">Est Wind</span>
-    <input type="radio" name="estWindPlayer" id="player{{@index}}-estWind" {{#unless isEditable}}disabled{{/unless}}/>
+    <input type="radio" name="estWindPlayer" id="player{{@index}}-estWind" {{#if playerScore.estWind}}value="true" checked{{/if}} {{#unless isEditable}}disabled{{/unless}}/>
     <span class="switch-label"></span>
   </label>
   <label class="switch-wrapper {{#unless isEditable}}switch-disabled{{/unless}}">
     <span class="label-text">Mah-Jong</span>
-    <input type="radio" name="mahjongPlayer" id="player{{@index}}-mahjong" {{#unless isEditable}}disabled{{/unless}}/>
+    <input type="radio" name="mahjongPlayer" id="player{{@index}}-mahjong" {{#if playerScore.mahjong}}value="true" checked{{/if}} {{#unless isEditable}}disabled{{/unless}}/>
     <span class="switch-label"></span>
   </label>
-
 </div>

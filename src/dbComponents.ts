@@ -1,6 +1,6 @@
 import { ResultSetHeader, RowDataPacket } from "mysql2"
 import db from "./db"
-import { Player, Room } from "./types"
+import { Player, Room, Score, Round } from "./types"
 
 export async function getRoom(roomCode: string): Promise<Room | null> {
     const [rooms] = await db.pool.execute<RowDataPacket[]>(
@@ -128,17 +128,132 @@ export async function deletePlayer(playerId: number): Promise<Player | null> {
     return player
 }
 
-export async function deleteRoom(roomCode: string): Promise<Room | null> {
-    const room = await getRoom(roomCode)
+export async function deleteRoom(roomId: number): Promise<Room | null> {
+    const [roomRows] = await db.pool.execute<RowDataPacket[]>(
+        "SELECT id, code, is_started FROM rooms WHERE id = ?",
+        [roomId]
+    )
 
-    if (!room) {
+    if (roomRows.length === 0) {
         return null
     }
 
+    const room = roomRows[0]
+
     await db.pool.execute(
         "DELETE FROM rooms WHERE id = ?",
-        [room.id]
+        [roomId]
     )
 
-    return room
+    return {
+        id: room.id,
+        code: room.code,
+        isStarted: room.is_started
+    }
+}
+
+export async function getPlayerScore(playerId: number, roundNumber: number): Promise<Score | null> {
+    const [scoreRows] = await db.pool.execute<RowDataPacket[]>(
+        "SELECT id, player_id, points, doubles, est_wind, mahjong FROM scores WHERE player_id = ? AND round_number = ?",
+        [playerId, roundNumber]
+    )
+
+    if (scoreRows.length === 0) {
+        return null
+    }
+
+    const score = scoreRows[0]
+    return {
+        id: score.id,
+        playerId: score.player_id,
+        points: score.points,
+        doubles: score.doubles,
+        estWind: score.est_wind,
+        mahjong: score.mahjong
+    }
+}
+
+export async function getPlayerLastScore(playerId: number): Promise<Score | null> {
+    const [scoreRows] = await db.pool.execute<RowDataPacket[]>(
+        `SELECT s.round_id, r.round_number
+         FROM scores s
+         JOIN rounds r ON s.round_id = r.id
+         WHERE s.player_id = ?
+         ORDER BY r.round_number DESC
+         LIMIT 1`,
+        [playerId]
+    )
+
+    if (scoreRows.length === 0) {
+        return null
+    }
+
+    const lastRoundNumber = scoreRows[0].round_number
+    return getPlayerScore(playerId, lastRoundNumber)
+}
+
+// export async function getPlayerLastScore(playerId: number): Promise<Score | null> {
+//     const [scoreRows] = await db.pool.execute<RowDataPacket[]>(
+//         "SELECT id, player_id, points, doubles, est_wind, mahjong, round_number FROM scores WHERE player_id = ? ORDER BY round_number DESC LIMIT 1",
+//         [playerId]
+//     )
+
+//     if (scoreRows.length === 0) {
+//         return null
+//     }
+
+//     const score = scoreRows[0]
+//     return {
+//         id: score.id,
+//         playerId: score.player_id,
+//         points: score.points,
+//         doubles: score.doubles,
+//         estWind: score.est_wind,
+//         mahjong: score.mahjong
+//     }
+// }
+
+export async function getRound(roomId: number, roundNumber: number): Promise<Round | null> {
+    const [roundRows] = await db.pool.execute<RowDataPacket[]>(
+        "SELECT id, room_id, round_number FROM rounds WHERE room_id = ? AND round_number = ?",
+        [roomId, roundNumber]
+    )
+
+    if (roundRows.length === 0) {
+        return null
+    }
+
+    const round = roundRows[0]
+    const players = await getPlayers(round.room_id)
+    
+    if (players.length != 4) {
+        return null
+    }
+
+    const scores = await Promise.all(players.map(p => getPlayerScore(p.id, round.round_number)))
+
+    if (scores.some(score => score === null)) {
+        return null
+    }
+
+    return {
+        id: round.id,
+        roundNumber: round.round_number,
+        roomId: round.room_id,
+        scores: scores as [Score, Score, Score, Score]
+    }
+}
+
+export async function getLastRound(roomId: number): Promise<Round | null> {
+    const [roundRows] = await db.pool.execute<RowDataPacket[]>(
+        "SELECT round_number FROM rounds WHERE room_id = ? ORDER BY round_number DESC LIMIT 1",
+        [roomId]
+    )
+
+    if (roundRows.length === 0) {
+        return null
+    }
+
+    const lastRoundNumber = roundRows[0].round_number
+    return getRound(roomId, lastRoundNumber)
 }
