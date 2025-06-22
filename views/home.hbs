@@ -5,6 +5,11 @@
 
 <h1 class="page-title">Mah-Jong Points Calculator</h1>
 
+<div class="limit-container">
+	<label for="limit-input">Limit:</label>
+	<input type="text" id="limit-input" name="limit" min="0" value="1000/2000">
+</div>
+
 <div class="grid-container">
   {{#each players}}
     {{> playerCard this}}
@@ -34,5 +39,31 @@
 		</tbody>
 	</table>
 </div>
-
+<div class="results-container">
+	<h2>Scoreboard</h2>
+	<div class="results-table-wrapper">
+		<table class="results-table" id="scoreboard">
+			<thead>
+				<tr>
+					<th>Player</th>
+					{{#each games}}
+						<th>Game {{@index}}</th>
+					{{/each}}
+					<th>Total</th>
+				</tr>
+			</thead>
+			<tbody id="scoreboard-body">
+				{{#each scoreboard}}
+					<tr data-player-index="{{@index}}"></tr>
+						<td>{{this.name}}</td>
+						{{#each this.scores}}
+							<td>{{this}}</td>
+						{{/each}}
+						<td>{{this.total}}</td>
+					</tr>
+				{{/each}}
+			</tbody>
+		</table>
+	</div>
+</div>
 

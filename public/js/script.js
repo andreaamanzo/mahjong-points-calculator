@@ -14,6 +14,16 @@ toastr.options = {
     "newestOnTop": true 
 }
 
+document.getElementById('limit-input').addEventListener('blur', function () {
+    const val = parseInt(this.value)
+    if (!isNaN(val)) {
+        this.value = `${val}/${val * 2}`
+    } else {
+        this.value = "1000/2000"
+    }
+})
+
+
 let estWind = null
 let mahjong = null
 
@@ -85,7 +95,8 @@ function calculatePoints()
         alert("Please select the Est Wind and the Mahjong player.")
         return
     }
-
+    const limitInput = document.getElementById('limit-input').value
+    const limit = parseInt(limitInput.split('/')[0])
     const players = [0, 1, 2, 3].map(i => {
         const name = document.getElementById(`player${i}-name`).innerText
         const doubles = parseInt(document.getElementById(`player${i}-doubles`).value)
@@ -93,11 +104,13 @@ function calculatePoints()
             alert(`Please enter a valid number for Player ${i} doubles.`)
             return
         }
-        const points = parseInt(document.getElementById(`player${i}-points`).value) * Math.pow(2, doubles)
+        let points = parseInt(document.getElementById(`player${i}-points`).value) * Math.pow(2, doubles)
         if (isNaN(points)) {
             alert(`Please enter a valid number for Player ${i} points.`)
             return
         }
+        if (points > limit) points = limit
+        
         const player = new Player(name, points)
     
         if (`player${i}` === estWind.id.split('-')[0]) player.isEstWind = true
@@ -139,10 +152,58 @@ function calculatePoints()
             `
             tbody.appendChild(tr)
         })
-
     }
 
-    setTimeout(updatetable, 500)
+    updatetable()
+
+    const scoreboardBody = document.getElementById('scoreboard-body')
+    if (scoreboardBody) {
+        // Get current round number (number of score columns minus 2: player + total)
+        const headerCells = document.querySelectorAll('#scoreboard thead tr th')
+        const roundCount = headerCells.length - 2
+
+        // Add a new column for this round
+        const newRoundIndex = roundCount
+        const th = document.createElement('th')
+        th.textContent = `Game ${newRoundIndex}`
+        headerCells[headerCells.length - 1].before(th)
+
+        // Update each player's row
+        players.forEach((player, idx) => {
+            let row = scoreboardBody.querySelector(`tr[data-player-index="${idx}"]`)
+            if (!row) {
+                row = document.createElement('tr')
+                row.setAttribute('data-player-index', idx)
+                row.innerHTML = `<td>${player.name}</td>` +
+                    Array(newRoundIndex).fill('<td></td>').join('') +
+                    `<td>0</td>`
+                scoreboardBody.appendChild(row)
+            }
+            // Always update the player name cell
+            let cells = row.querySelectorAll('td')
+            if (cells.length > 0) {
+                cells[0].textContent = player.name
+            }
+            // Insert this game's score before the total
+            const scoreCell = document.createElement('td')
+            scoreCell.textContent = player.finalPoints >= 0 ? `+${player.finalPoints}` : `${player.finalPoints}`
+            cells[cells.length - 1].before(scoreCell)
+            
+            cells[cells.length - 1].textContent = parseInt(cells[cells.length - 1].textContent) + player.finalPoints
+        })
+    }
+
+    if (scoreboardBody) {
+        // Ordina le righe in base al punteggio totale (ultima cella)
+        const rows = Array.from(scoreboardBody.querySelectorAll('tr'))
+        rows.sort((a, b) => {
+            const aTotal = parseInt(a.querySelectorAll('td:last-child')[0].textContent) || 0
+            const bTotal = parseInt(b.querySelectorAll('td:last-child')[0].textContent) || 0
+            return bTotal - aTotal
+        })
+        rows.forEach(row => scoreboardBody.appendChild(row))
+    }
+
 
 }
 
