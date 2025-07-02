@@ -2,6 +2,7 @@ export type Player = {
   id: number,
   name: string,
   isHost: boolean,
+  roomId: number
 }
 
 export type Room = {
@@ -85,3 +86,19 @@ export type GetLastRoundReturnType = {
   message: string,
   round: null
 }
+
+export type UpdatePlayerPointsReturnType = {
+  success: true,
+  message: string,
+  score: Score
+} | {
+  success: false,
+  message: string,
+  score: null
+}
+
+export type UpdatePlayerDoublesReturnType = UpdatePlayerPointsReturnType
+
+export type UpdatePlayerMahjongReturnType = UpdatePlayerPointsReturnType
+
+export type UpdatePlayerEstWindReturnType = UpdatePlayerPointsReturnType

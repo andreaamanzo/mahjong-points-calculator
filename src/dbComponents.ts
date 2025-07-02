@@ -20,6 +20,24 @@ export async function getRoom(roomCode: string): Promise<Room | null> {
     }
 }
 
+export async function getRoomFromId(roomId: number): Promise<Room | null> {
+    const [rooms] = await db.pool.execute<RowDataPacket[]>(
+        "SELECT id, code, is_started FROM rooms WHERE id = ?",
+        [roomId]
+    )
+
+    if (rooms.length === 0) {
+        return null
+    }
+
+    const room = rooms[0]
+    return {
+        id: room.id,
+        code: room.code,
+        isStarted: room.is_started
+    }
+}
+
 export async function createRoom(roomCode: string): Promise<Room> {
     const [roomResult] = await db.pool.execute<ResultSetHeader>(
         "INSERT INTO rooms (code) VALUES (?)",
@@ -38,6 +56,27 @@ export async function startRoom(roomCode: string): Promise<Room | null> {
         "UPDATE rooms SET is_started = 1 WHERE code = ?",
         [roomCode]
     )
+    await db.pool.execute<ResultSetHeader>(
+        "INSERT INTO rounds (room_id, round_number) VALUES ((SELECT id FROM rooms WHERE code = ?), 1)",
+        [roomCode]
+    )
+    const [players] = await db.pool.execute<RowDataPacket[]>(
+        "SELECT id FROM players WHERE room_id = (SELECT id FROM rooms WHERE code = ?)",
+        [roomCode]
+    )
+
+    const [roundRows] = await db.pool.execute<RowDataPacket[]>(
+        "SELECT id FROM rounds WHERE room_id = (SELECT id FROM rooms WHERE code = ?) AND round_number = 1",
+        [roomCode]
+    )
+    const roundId = roundRows[0].id
+
+    for (const player of players) {
+        await db.pool.execute<ResultSetHeader>(
+            "INSERT INTO scores (player_id, round_id, points, doubles, est_wind, mahjong) VALUES (?, ?, 0, 0, 0, 0)",
+            [player.id, roundId]
+        )
+    }
 
     if (result.affectedRows === 0) {
         return null
@@ -56,12 +95,13 @@ export async function createPlayer(roomId: number, playerName: string, isHost: b
         id: playerResult.insertId,
         name: playerName,
         isHost,
+        roomId
     }
 }
 
 export async function getPlayers(roomId: number): Promise<Player[]> {
     const [playerRows] = await db.pool.execute<RowDataPacket[]>(
-        "SELECT id, name, is_host FROM players WHERE room_id = ?",
+        "SELECT id, name, is_host, room_id FROM players WHERE room_id = ?",
         [roomId]
     )
 
@@ -69,12 +109,13 @@ export async function getPlayers(roomId: number): Promise<Player[]> {
         id: player.id,
         name: player.name,
         isHost: player.is_host,
+        roomId: player.room_id
     }))
 }
 
 export async function getPlayer(playerId: number): Promise<Player | null> {
     const [playerRows] = await db.pool.execute<RowDataPacket[]>(
-        "SELECT id, name, is_host FROM players WHERE id = ?",
+        "SELECT id, name, is_host, room_id FROM players WHERE id = ?",
         [playerId]
     )
 
@@ -87,6 +128,7 @@ export async function getPlayer(playerId: number): Promise<Player | null> {
         id: player.id,
         name: player.name,
         isHost: player.is_host,
+        roomId: player.room_id
     }
 }
 
@@ -97,7 +139,7 @@ export async function renamePlayer(playerId: number, newName: string): Promise<P
     )
 
     const [playerRows] = await db.pool.execute<RowDataPacket[]>(
-        "SELECT id, name, is_host FROM players WHERE id = ?",
+        "SELECT id, name, is_host, room_id FROM players WHERE id = ?",
         [playerId]
     )
 
@@ -110,6 +152,7 @@ export async function renamePlayer(playerId: number, newName: string): Promise<P
         id: player.id,
         name: player.name,
         isHost: player.is_host,
+        roomId: player.room_id
     }
 }
 
@@ -154,7 +197,10 @@ export async function deleteRoom(roomId: number): Promise<Room | null> {
 
 export async function getPlayerScore(playerId: number, roundNumber: number): Promise<Score | null> {
     const [scoreRows] = await db.pool.execute<RowDataPacket[]>(
-        "SELECT id, player_id, points, doubles, est_wind, mahjong FROM scores WHERE player_id = ? AND round_number = ?",
+        `SELECT s.id, s.player_id, s.points, s.doubles, s.est_wind, s.mahjong
+         FROM scores s
+         JOIN rounds r ON s.round_id = r.id
+         WHERE s.player_id = ? AND r.round_number = ?`,
         [playerId, roundNumber]
     )
 
@@ -256,4 +302,85 @@ export async function getLastRound(roomId: number): Promise<Round | null> {
 
     const lastRoundNumber = roundRows[0].round_number
     return getRound(roomId, lastRoundNumber)
+}
+
+export async function updatePlayerPoints(playerId: number, roundNumber: number, points: number): Promise<Score | null> {
+    const [result] = await db.pool.execute<ResultSetHeader>(
+        `UPDATE scores 
+         SET points = ?
+         WHERE player_id = ? AND round_id = (SELECT id FROM rounds WHERE round_number = ? AND room_id = (SELECT room_id FROM players WHERE id = ?))`,
+        [points, playerId, roundNumber, playerId]
+    )
+
+    if (result.affectedRows === 0) {
+        return null
+    }
+
+    return getPlayerScore(playerId, roundNumber)
+}
+
+export async function updatePlayerDoubles(playerId: number, roundNumber: number, doubles: number): Promise<Score | null> {
+    const [result] = await db.pool.execute<ResultSetHeader>(
+        `UPDATE scores 
+         SET doubles = ?
+         WHERE player_id = ? AND round_id = (SELECT id FROM rounds WHERE round_number = ? AND room_id = (SELECT room_id FROM players WHERE id = ?))`,
+        [doubles, playerId, roundNumber, playerId]
+    )
+
+    if (result.affectedRows === 0) {
+        return null
+    }
+
+    return getPlayerScore(playerId, roundNumber)
+}
+
+export async function updatePlayerMahjong(playerId: number, roundNumber: number, mahjong: boolean): Promise<Score | null> {
+    if (mahjong) {
+        await db.pool.execute(
+            `UPDATE scores 
+             SET mahjong = 0 
+             WHERE round_id = (
+                 SELECT id FROM rounds WHERE round_number = ? AND room_id = (SELECT room_id FROM players WHERE id = ?)
+             ) AND player_id != ?`,
+            [roundNumber, playerId, playerId]
+        )
+    }
+
+    const [result] = await db.pool.execute<ResultSetHeader>(
+        `UPDATE scores 
+         SET mahjong = ?
+         WHERE player_id = ? AND round_id = (SELECT id FROM rounds WHERE round_number = ? AND room_id = (SELECT room_id FROM players WHERE id = ?))`,
+        [mahjong, playerId, roundNumber, playerId]
+    )
+
+    if (result.affectedRows === 0) {
+        return null
+    }
+
+    return getPlayerScore(playerId, roundNumber)
+}
+
+export async function updatePlayerEstWind(playerId: number, roundNumber: number, estWind: boolean): Promise<Score | null> {
+    if (estWind) {
+        await db.pool.execute(
+            `UPDATE scores 
+             SET est_wind = 0 
+             WHERE round_id = (
+                 SELECT id FROM rounds WHERE round_number = ? AND room_id = (SELECT room_id FROM players WHERE id = ?)
+             ) AND player_id != ?`,
+            [roundNumber, playerId, playerId]
+        )
+    }
+    const [result] = await db.pool.execute<ResultSetHeader>(
+        `UPDATE scores 
+         SET est_wind = ?
+         WHERE player_id = ? AND round_id = (SELECT id FROM rounds WHERE round_number = ? AND room_id = (SELECT room_id FROM players WHERE id = ?))`,
+        [estWind, playerId, roundNumber, playerId]
+    )
+
+    if (result.affectedRows === 0) {
+        return null
+    }
+
+    return getPlayerScore(playerId, roundNumber)
 }

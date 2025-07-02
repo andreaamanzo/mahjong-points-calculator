@@ -205,6 +205,9 @@ input[type="radio"] {
   transition: transform 0.3s;
 }
 
+/* In CSS puro, puoi selezionare solo lo stato :checked, non il valore di un attributo come value="true" o value="false" su un input radio. 
+Se vuoi cambiare stile in base al valore, devi farlo via JavaScript aggiungendo/rimuovendo una classe. 
+Con solo CSS, puoi usare solo :checked. */
 input[type="radio"]:checked + .switch-label {
   background-color: #d40000;
 }

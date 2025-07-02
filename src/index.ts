@@ -5,7 +5,7 @@ import fastifyView from '@fastify/view'
 import handlebars from 'handlebars'
 import { registerHandlebarsHelpers } from './handlebarsHelpers'
 import configs from "./configs"
-import { createRoomComponent, joinRoom, getPlayersInRoom, renamePlayerComponent, deletePlayerComponent, deleteRoomComponent, startRoomComponent, getLastRoundComponent } from "./components"
+import { createRoomComponent, joinRoomComponent, getPlayersInRoomComponent, renamePlayerComponent, deletePlayerComponent, deleteRoomComponent, startRoomComponent, getLastRoundComponent, updatePlayerPointsComponent, updatePlayerDoublesComponent, updatePlayerMahjongComponent, updatePlayerEstWindComponent } from "./components"
 import { Player, Room } from "./types"
 import { getRoom } from "./dbComponents"
 
@@ -52,7 +52,7 @@ app.get('/join-room', (request, reply) => {
 
 app.post('/join-room', async (request, reply) => {
   const { roomCode, playerName } = request.body as { roomCode: string, playerName: string }
-  const results = await joinRoom(roomCode, playerName);
+  const results = await joinRoomComponent(roomCode, playerName);
   if (results.success) {
     reply.redirect(`/lobby-room?isHost=false&roomCode=${results.room.code}&playerId=${results.player.id}`)
   } else {
@@ -85,7 +85,7 @@ app.get('/lobby-room', async (request, reply) => {
   if (room?.isStarted) {
     return reply.redirect(`/room?isHost=${isHost}&roomCode=${roomCode}&playerId=${playerId}`)
   }
-  const results = await getPlayersInRoom(roomCode)
+  const results = await getPlayersInRoomComponent(roomCode)
   if (results.success) {
     const players = results.players.map(player => {
       return {
@@ -111,8 +111,11 @@ app.get('/room', async (request, reply) => {
   if (!(room?.isStarted)) {
     return reply.redirect(`/lobby-room?isHost=${isHost}&roomCode=${roomCode}&playerId=${playerId}`)
   }
-  const playersResults = await getPlayersInRoom(roomCode)
+  const playersResults = await getPlayersInRoomComponent(roomCode)
   const lastRoundResults = await getLastRoundComponent(roomCode)
+  // Debug output for players and last round results
+  // console.log("Players Results:", JSON.stringify(playersResults, null, 2));
+  // console.log("Last Round Results:", JSON.stringify(lastRoundResults, null, 2));
   if (playersResults.success && lastRoundResults.success) {
     const players = playersResults.players.map(player => {
       const playerScore = lastRoundResults.round.scores.find(s => s.playerId == player.id)
@@ -168,6 +171,49 @@ app.post('/api/delete-room', async (request, reply) => {
 app.post('/api/start-room', async (request, reply) => {
   const { roomCode } = request.body as { roomCode: string }
   const results = await startRoomComponent(roomCode)
+  if (results.success) {
+    reply.send(results)
+  } else {
+    reply.status(500).send(results)
+  }
+})
+
+app.post('/api/update-points', async (request, reply) => {
+  const { playerId, points } = request.body as { playerId: number, points: number }
+  const results = await updatePlayerPointsComponent(playerId, points)
+  if (results.success) {
+    reply.send(results)
+  } else {
+    reply.status(500).send(results)
+  }
+})
+
+app.post('/api/update-doubles', async (request, reply) => {
+  const { playerId, doubles } = request.body as { playerId: number, doubles: number }
+  const results = await updatePlayerDoublesComponent(playerId, doubles)
+  if (results.success) {
+    reply.send(results)
+  } else {
+    reply.status(500).send(results)
+  }
+})
+
+app.post('/api/update-mahjong', async (request, reply) => {
+  const { playerId, mahjong } = request.body as { playerId: number, mahjong: boolean }
+  console.log("mah: ", mahjong)
+  const results = await updatePlayerMahjongComponent(playerId, mahjong)
+  if (results.success) {
+    reply.send(results)
+  } else {
+    reply.status(500).send(results)
+  }
+})
+
+app.post('/api/update-estWind', async (request, reply) => {
+  const { playerId, estWind } = request.body as { playerId: number, estWind: boolean }
+  console.log(estWind)
+  const results = await updatePlayerEstWindComponent(playerId, estWind)
+  console.log(results)
   if (results.success) {
     reply.send(results)
   } else {

@@ -55,7 +55,7 @@ document.getElementById("start-game-button").addEventListener("click", async (ev
     })
 
     if (!response.ok) {
-      throw new Error("Failed to start room")
+      throw new Error("Failed to start game")
     }
 
     window.location.href = `/room?isHost=${isHost}&roomCode=${roomCode}&playerId=${playerId}`

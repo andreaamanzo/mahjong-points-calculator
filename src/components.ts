@@ -1,5 +1,36 @@
-import { CreateRoomReturnType, DeletePlayerReturnType, DeleteRoomReturnType, GetLastRoundReturnType, GetPlayersInRoomReturnType, JoinRoomReturnType, RenamePlayerReturnType, StartRoomReturnType } from "./types"
-import { createPlayer, createRoom, deletePlayer, deleteRoom, getPlayers, getRoom, renamePlayer as renamePlayerDb, startRoom, getLastRound } from "./dbComponents"
+import {
+  CreateRoomReturnType,
+  DeletePlayerReturnType,
+  DeleteRoomReturnType,
+  GetLastRoundReturnType,
+  GetPlayersInRoomReturnType,
+  JoinRoomReturnType,
+  RenamePlayerReturnType,
+  StartRoomReturnType,
+  UpdatePlayerPointsReturnType,
+  UpdatePlayerDoublesReturnType,
+  UpdatePlayerMahjongReturnType,
+  UpdatePlayerEstWindReturnType,
+} from "./types"
+
+import {
+  createPlayer,
+  createRoom,
+  deletePlayer,
+  deleteRoom,
+  getPlayers,
+  getRoom,
+  renamePlayer,
+  startRoom,
+  getLastRound,
+  updatePlayerPoints,
+  updatePlayerDoubles,
+  updatePlayerMahjong,
+  updatePlayerEstWind,
+  getPlayer,
+  getRoomFromId,
+} from "./dbComponents"
+
 
 export async function createRoomComponent(hostName: string): Promise<CreateRoomReturnType> {
   let roomCode = ""
@@ -44,7 +75,7 @@ export async function createRoomComponent(hostName: string): Promise<CreateRoomR
   }
 }
 
-export async function joinRoom(roomCode: string, playerName: string): Promise<JoinRoomReturnType> {
+export async function joinRoomComponent(roomCode: string, playerName: string): Promise<JoinRoomReturnType> {
   try {
     const room = await getRoom(roomCode)
 
@@ -113,7 +144,7 @@ export async function startRoomComponent(roomCode: string): Promise<StartRoomRet
   }
 }
 
-export async function getPlayersInRoom(roomCode: string): Promise<GetPlayersInRoomReturnType> {
+export async function getPlayersInRoomComponent(roomCode: string): Promise<GetPlayersInRoomReturnType> {
   try {
     const room = await getRoom(roomCode)
 
@@ -150,7 +181,7 @@ export async function renamePlayerComponent(playerId: number, newName: string): 
   }
 
   try {
-    const updatedPlayer = await renamePlayerDb(playerId, newName.trim())
+    const updatedPlayer = await renamePlayer(playerId, newName.trim())
     if (!updatedPlayer) {
       return {
         success: false,
@@ -267,9 +298,174 @@ export async function getLastRoundComponent(roomCode: string): Promise<GetLastRo
   }
 }
 
-export default {
-  createRoomComponent,
-  joinRoom,
-  getPlayersInRoom,
-  renamePlayerComponent,
+export async function updatePlayerPointsComponent(playerId: number, newPoints: number): Promise<UpdatePlayerPointsReturnType> {
+  try {
+    const player = await getPlayer(playerId)
+    if (!player || !player.roomId) {
+      return {
+        success: false,
+        message: "Player not found",
+        score: null,
+      }
+    }
+    const room = await getRoomFromId(player.roomId)
+    if (!room) {
+      return {
+        success: false,
+        message: "Room not found",
+        score: null,
+      }
+    }
+    const lastRound = await getLastRound(room.id)
+    const roundNumber = lastRound ? lastRound.roundNumber : 1
+    const score = await updatePlayerPoints(playerId, roundNumber, newPoints)
+    if (!score) {
+      return {
+        success: false,
+        message: "Score not found",
+        score: null,
+      }
+    }
+    return {
+      success: true,
+      message: "Points updated",
+      score,
+    }
+  } catch (error) {
+    console.error("Errore nell'aggiornamento dei punti:", error)
+    return {
+      success: false,
+      message: "Database error",
+      score: null,
+    }
+  }
+}
+
+export async function updatePlayerDoublesComponent(playerId: number, doubles: number): Promise<UpdatePlayerDoublesReturnType> {
+  try {
+    const player = await getPlayer(playerId)
+    if (!player || !player.roomId) {
+      return {
+        success: false,
+        message: "Player not found",
+        score: null,
+      }
+    }
+    const room = await getRoomFromId(player.roomId)
+    if (!room) {
+      return {
+        success: false,
+        message: "Room not found",
+        score: null,
+      }
+    }
+    const lastRound = await getLastRound(room.id)
+    const roundNumber = lastRound ? lastRound.roundNumber : 1
+    const score = await updatePlayerDoubles(playerId, roundNumber, doubles)
+    if (!score) {
+      return {
+        success: false,
+        message: "Score not found",
+        score: null,
+      }
+    }
+    return {
+      success: true,
+      message: "Doubles updated",
+      score,
+    }
+  } catch (error) {
+    console.error("Errore nell'aggiornamento dei doubles:", error)
+    return {
+      success: false,
+      message: "Database error",
+      score: null,
+    }
+  }
+}
+
+export async function updatePlayerMahjongComponent(playerId: number, mahjong: boolean): Promise<UpdatePlayerMahjongReturnType> {
+  try {
+    const player = await getPlayer(playerId)
+    if (!player || !player.roomId) {
+      return {
+        success: false,
+        message: "Player not found",
+        score: null,
+      }
+    }
+    const room = await getRoomFromId(player.roomId)
+    if (!room) {
+      return {
+        success: false,
+        message: "Room not found",
+        score: null,
+      }
+    }
+    const lastRound = await getLastRound(room.id)
+    const roundNumber = lastRound ? lastRound.roundNumber : 1
+    const score = await updatePlayerMahjong(playerId, roundNumber, mahjong)
+    if (!score) {
+      return {
+        success: false,
+        message: "Score not found",
+        score: null,
+      }
+    }
+    return {
+      success: true,
+      message: "Mahjong updated",
+      score,
+    }
+  } catch (error) {
+    console.error("Errore nell'aggiornamento del mahjong:", error)
+    return {
+      success: false,
+      message: "Database error",
+      score: null,
+    }
+  }
+}
+
+export async function updatePlayerEstWindComponent(playerId: number, estWind: boolean): Promise<UpdatePlayerEstWindReturnType> {
+  try {
+    const player = await getPlayer(playerId)
+    if (!player || !player.roomId) {
+      return {
+        success: false,
+        message: "Player not found",
+        score: null,
+      }
+    }
+    const room = await getRoomFromId(player.roomId)
+    if (!room) {
+      return {
+        success: false,
+        message: "Room not found",
+        score: null,
+      }
+    }
+    const lastRound = await getLastRound(room.id)
+    const roundNumber = lastRound ? lastRound.roundNumber : 1
+    const score = await updatePlayerEstWind(playerId, roundNumber, estWind)
+    if (!score) {
+      return {
+        success: false,
+        message: "Score not found",
+        score: null,
+      }
+    }
+    return {
+      success: true,
+      message: "Est wind updated",
+      score,
+    }
+  } catch (error) {
+    console.error("Errore nell'aggiornamento dell'est wind:", error)
+    return {
+      success: false,
+      message: "Database error",
+      score: null,
+    }
+  }
 }
