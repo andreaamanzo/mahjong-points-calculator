@@ -12,7 +12,7 @@ export const {
 } = process.env
 
 export default {
-    SITE_HOST,
+    SITE_HOST: SITE_HOST || '0.0.0.0',
     PORT,
     DB_HOST,
     DB_USER,
