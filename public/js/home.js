@@ -25,30 +25,6 @@ document.querySelectorAll('input[type="radio"]').forEach(radio => {
     })
 })
 
-function editName(button) {
-    const nameSpan = button.closest(".player-name-container").querySelector(".player-name")
-    nameSpan.contentEditable = true
-    nameSpan.focus()
-    const charsLimit = 15
-    nameSpan.addEventListener("input", () => {
-        if (nameSpan.textContent.trim().length > charsLimit) {
-            nameSpan.textContent = nameSpan.textContent.trim().slice(0, charsLimit)
-            toastr.warning(`Name cannot exceed ${charsLimit} characters`)
-        }
-    })
-
-    nameSpan.addEventListener('blur', () => {
-        nameSpan.contentEditable = false
-    })
-
-    nameSpan.addEventListener('keydown', (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault()
-            nameSpan.blur()
-        }
-    })
-}
-
 document.querySelectorAll('.edit-button').forEach(button => {
     button.addEventListener('click', () => editName(button))
 })

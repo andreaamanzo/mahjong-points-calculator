@@ -11,6 +11,7 @@ import {
   UpdatePlayerDoublesReturnType,
   UpdatePlayerMahjongReturnType,
   UpdatePlayerEstWindReturnType,
+  GetPlayerReturnType,
 } from "./types"
 
 import {
@@ -167,6 +168,31 @@ export async function getPlayersInRoomComponent(roomCode: string): Promise<GetPl
       message: "Database error", 
       players: null, 
       room: null 
+    }
+  }
+}
+
+export async function getPlayerComponent(playerId: number): Promise<GetPlayerReturnType> {
+  try {
+    const player = await getPlayer(playerId)
+    if (!player) {
+      return {
+        success: false,
+        message: "Player not found",
+        player: null,
+      }
+    }
+    return {
+      success: true,
+      message: "Player retrieved",
+      player,
+    }
+  } catch (error) {
+    console.error("Errore nel recupero del giocatore:", error)
+    return {
+      success: false,
+      message: "Database error",
+      player: null,
     }
   }
 }

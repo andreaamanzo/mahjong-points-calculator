@@ -12,28 +12,9 @@
   </button>
 </div>
 
-<h2 class="page-title small">Players ({{players.length}}/4):</h2>
-
-<div class="grid-container">
-  {{#each players}}
-    {{> playerCardMinimal this}}
-  {{/each}}
-
-  {{#each (emptySlots players.length 4)}}
-    <div class="grid-item empty">Empty Slot</div>
-  {{/each}}
+<div id="updating-lobby-content">
+  {{> updatingLobbyContent players=players }}
 </div>
 
-{{#if isHost}}
-	<button id="start-game-button" class="general-button" {{#unless (eq players.length 4)}}disabled{{/unless}}>
-		{{#if (eq players.length 4)}}
-			<i class="fas fa-chess-board"></i> Start Game
-		{{else}}
-			<i class="fas fa-hourglass-half"></i> Waiting for players...
-		{{/if}}
-	</button>
-{{else}}
-    <p class="message">Waiting for the host to start the game...</p>
-{{/if}}
-
+<script src="/socket.io/socket.io.js"></script>
 <script src="/public/js/lobby.js"></script>

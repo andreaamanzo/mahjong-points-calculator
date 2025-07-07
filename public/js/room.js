@@ -3,9 +3,15 @@ const playerId = urlParams.get("playerId")
 const isHost = urlParams.get("isHost") == "true" ? true : false
 const roomCode = urlParams.get("roomCode")
 
+const socket = io()
+
+socket.emit("register", {
+  id: parseInt(playerId),
+  roomCode
+})
+
 document.querySelectorAll('input[type="radio"]').forEach(radio => {
     radio.addEventListener('click', function () {
-        console.log(radio)
         if(radio.value === "true") {
             radio.value = "false"
             radio.checked = false
@@ -71,7 +77,6 @@ document.querySelectorAll('[id^="player"][id$="-doubles"]:not([disabled])').forE
 // Mahjong
 document.querySelectorAll('[id^="player"][id$="-mahjong"]:not([disabled])').forEach(function(element) {
     element.addEventListener('click', async function(event) {
-        console.log("fatto")
         try {
             const mahjongValue = event.target.value === "true"
             const response = await fetch('/api/update-mahjong', {
@@ -121,4 +126,29 @@ document.querySelectorAll('[id^="player"][id$="-estWind"]:not([disabled])').forE
             console.error(error)
         }
     })
+})
+
+socket.on("playerPointsUpdated", ({ playerId, points }) => {
+  const input = document.querySelector(`[id="player${playerId}-points"]`)
+  if (input) input.value = points
+})
+
+socket.on("playerDoublesUpdated", ({ playerId, doubles }) => {
+  const input = document.querySelector(`[id="player${playerId}-doubles"]`)
+  if (input) input.value = doubles
+})
+
+socket.on("playerMahjongUpdated", ({ playerId, mahjong }) => {
+    console.log("here", playerId, mahjong)
+  const input = document.querySelector(`[id="player${playerId}-mahjong"]`)
+  if (input) input.checked = mahjong
+})
+
+socket.on("playerEstWindUpdated", ({ playerId, estWind }) => {
+  const input = document.querySelector(`[id="player${playerId}-estWind"]`)
+  if (input) input.checked = estWind
+})
+
+socket.on("reloadPage", () => {
+  window.location.reload()
 })

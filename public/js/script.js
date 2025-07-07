@@ -14,7 +14,31 @@ toastr.options = {
     "newestOnTop": true 
 }
 
-document.getElementById("exit-button").addEventListener("click", () => {
+function editName(button) {
+    const nameSpan = button.closest(".player-name-container").querySelector(".player-name")
+    nameSpan.contentEditable = true
+    nameSpan.focus()
+    const charsLimit = 15
+    nameSpan.addEventListener("input", () => {
+        if (nameSpan.textContent.trim().length > charsLimit) {
+            nameSpan.textContent = nameSpan.textContent.trim().slice(0, charsLimit)
+            toastr.warning(`Name cannot exceed ${charsLimit} characters`)
+        }
+    })
+
+    nameSpan.addEventListener('blur', () => {
+        nameSpan.contentEditable = false
+    })
+
+    nameSpan.addEventListener('keydown', (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault()
+            nameSpan.blur()
+        }
+    })
+}
+
+document.getElementById("exit-button")?.addEventListener("click", () => {
   if (isHost) {
     fetch("/api/delete-room", {
       method: "POST",

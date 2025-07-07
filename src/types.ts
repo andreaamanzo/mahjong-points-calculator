@@ -63,6 +63,8 @@ export type RenamePlayerReturnType = {
   player: null
 }
 
+export type GetPlayerReturnType = RenamePlayerReturnType
+
 export type DeletePlayerReturnType = RenamePlayerReturnType
 
 export type DeleteRoomReturnType = {
