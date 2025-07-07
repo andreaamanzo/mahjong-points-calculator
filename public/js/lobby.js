@@ -26,28 +26,27 @@ document.querySelector(".edit-button").addEventListener("click", () => {
   
 })
 
-function editNameLobby(button) {
+async function editNameLobby(button) {
   editName(button)
   const nameSpan = button.closest(".player-name-container").querySelector(".player-name")
 
-  nameSpan.addEventListener("blur", () => {
+  nameSpan.addEventListener("blur", async () => {
     const newName = nameSpan.textContent.trim()
-    fetch("/api/rename-player", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ newName, playerId }),
-    })
-    .then((response) => {
+    try {
+      const response = await fetch("/api/rename-player", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newName, playerId }),
+      })
       if (!response.ok) {
         throw new Error("Failed to rename player")
       }
-    })
-    .catch((error) => {
+    } catch (error) {
       toastr.error("Error renaming player")
       console.error(error)
-    })
+    }
   })
 }
 
@@ -94,12 +93,10 @@ async function updateLobbyPlayers(roomUsers) {
     container.innerHTML = html
 
     document.querySelector(".edit-button").addEventListener("click", function (event) {
-      console.log(event.currentTarget)
       editNameLobby(event.currentTarget)
     })
 
     document.getElementById("start-game-button")?.addEventListener("click", (event) => {
-      console.log(event.currentTarget)
       startGameLobby(event.currentTarget)
     })
 

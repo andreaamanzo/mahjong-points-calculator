@@ -2,21 +2,21 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export const {
-    SITE_HOST,
-    PORT,
-    DB_HOST,
-    DB_USER,
-    DB_USER_PASSWORD,
-    DB_ROOT_PASSWORD,
-    DB_NAME
+	SITE_HOST,
+	PORT,
+	DB_HOST,
+	DB_USER,
+	DB_USER_PASSWORD,
+	DB_ROOT_PASSWORD,
+	DB_NAME
 } = process.env
 
 export default {
-    SITE_HOST: SITE_HOST || '0.0.0.0',
-    PORT,
-    DB_HOST,
-    DB_USER,
-    DB_USER_PASSWORD,
-    DB_ROOT_PASSWORD,
-    DB_NAME
+	SITE_HOST: SITE_HOST || '0.0.0.0',
+	PORT,
+	DB_HOST,
+	DB_USER,
+	DB_USER_PASSWORD,
+	DB_ROOT_PASSWORD,
+	DB_NAME
 }

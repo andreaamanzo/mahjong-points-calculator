@@ -40,7 +40,6 @@ io.on("connection", (socket) => {
       users.set(socket.id, { id, name: player.name, isHost: player.isHost, roomCode })
       socket.join(roomCode)
   
-      // Filtra solo utenti nella stessa stanza
       const roomUsers = Array.from(users.values()).filter(u => u.roomCode === roomCode)
   
       io.to(roomCode).emit("userListUpdate", roomUsers)
@@ -71,8 +70,8 @@ app.set("view engine", "hbs")
 app.set("views", join(__dirname, "../views"))
 
 // Middleware for parsing urlencoded bodies (form data)
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
 
 // Serve static files from /public under /public path
 app.use("/public", express.static(join(__dirname, "../public")))
@@ -204,7 +203,6 @@ app.post('/api/rename-player', async (req: Request, res: Response) => {
       const roomUsers = Array.from(users.values()).filter(u => u.roomCode === userInfo.roomCode)
       io.to(userInfo.roomCode).emit("userListUpdate", roomUsers)
     }
-    console.log("player renamed")
     res.send(results)
   } else {
     res.status(500).send(results)
@@ -268,12 +266,9 @@ app.post('/api/update-doubles', async (req: Request, res: Response) => {
 })
 
 app.post('/api/update-mahjong', async (req: Request, res: Response) => {
-  console.log("here")
   const { playerId, mahjong, roomCode } = req.body as { playerId: number, mahjong: boolean, roomCode: string }
   const results = await updatePlayerMahjongComponent(playerId, mahjong)
-  console.log(results)
   if (results.success) {
-    console.log(roomCode)
     io.to(roomCode).emit("playerMahjongUpdated", { playerId, mahjong })
     res.send(results)
   } else {
@@ -309,5 +304,5 @@ server.listen(Number(configs.PORT), configs.SITE_HOST, (err?: any) => {
     console.error(err)
     process.exit(1)
   }
-  console.log(`✅ Server listening on http://${configs.SITE_HOST}:${configs.PORT}`)
+  console.log(`Server listening on http://${configs.SITE_HOST}:${configs.PORT}`)
 })
