@@ -1,11 +1,17 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-	min-width: 550px;
-  min-height: 90vh;
+	min-width: 1300px;
+  min-height: 100vh;
+  width: 100%;
   margin: 0;
+  overflow-x: auto;
   background: linear-gradient(to bottom right, #ffecd2, #fcb69f);
   font-family: "Noto Sans", sans-serif;
   color: #440000;
@@ -25,11 +31,54 @@ body {
 	padding: 20px;
 }
 
+.main-container {
+  display: flex;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.top-container {
+  flex-direction: column;
+  min-height: 200px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.middle-container {
+  flex-direction: row;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.center-middle-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  z-index: 1;
+}
+
+.lateral-middle-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  z-index: 2;
+}
+
+.bottom-container {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .page-title {
   font-size: 2.2rem;
   font-weight: bold;
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 20px;
   color: #0a0a0a;
   font-family: "Noto Serif SC", serif;
   text-shadow: 2px 2px 0 #ffd700;
@@ -427,6 +476,9 @@ input[type="number"]::-webkit-outer-spin-button {
   justify-content: center;
   align-items: center;
   gap: 10px;
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
   padding: 15px;
   margin-bottom: 10px;
   background-color: rgba(255, 248, 240, 0.95);
@@ -479,6 +531,58 @@ input[type="number"]::-webkit-outer-spin-button {
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+
+.scoreboard {
+  min-width: 250px;
+  background-color: #fff8f0;
+  border: 3px solid #bb0000;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 0 40px;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.scoreboard-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #8c1c13;
+  margin-bottom: 16px;
+  text-align: center;
+  text-shadow: 1px 1px 0 #ffd700;
+}
+
+#scoreboard-list {
+  padding: 0;
+}
+
+.scoreboard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-weight: bold;
+  color: #440000;
+  border-bottom: 1px solid #ffd9c1;
+}
+
+.scoreboard-item:last-child {
+  border-bottom: none;
+}
+
+.scoreboard-rank {
+  color: #bb0000;
+  margin-right: 6px;
+}
+
+.scoreboard-name {
+  flex: 1;
+  text-align: left;
+}
+
+.scoreboard-score {
+  color: #8c1c13;
 }
 
 

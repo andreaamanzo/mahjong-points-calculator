@@ -2,45 +2,73 @@
   <a class="room-button" id="exit-button" href="/"><i class="fas fa-right-from-bracket fa-flip-horizontal"></i>Exit</a>
 </div>
 
-<h1 class="page-title">Mah-Jong Room</h1>
-
-{{!-- <div class="code-box">
-  <div>Room code:</div>
-  <div id="roomCode">{{roomCode}}</div>
-  <button id="copy-code-button" class="copy-button" title="Copy to clipboard">
-    <i class="fas fa-copy"></i>
-  </button>
-</div> --}}
-
-<div class="grid-container">
-  {{#each players}}
-    {{> playerCard this}}
-  {{/each}}
+<div class="main-container top-container">
+	<h1 class="page-title">Mah-Jong Room</h1>
+	<div class="code-box">
+		<div>Room code:</div>
+		<div id="roomCode">{{roomCode}}</div>
+		<button id="copy-code-button" class="copy-button" title="Copy to clipboard">
+			<i class="fas fa-copy"></i>
+		</button>
+	</div>
 </div>
 
-<div class="action-container">
-    <button class="general-button" onclick="calculatePoints()">
-      <i class="fas fa-calculator"></i> Calculate Points
-    </button>
-  </div>
+<div class="main-container middle-container">
+	<div class="lateral-middle-container">
+		<div class="scoreboard">
+			<h3 class="scoreboard-title">Scoreboard</h3>
+			<ul id="scoreboard-list">
+				{{#each players}}
+					<li class="scoreboard-item">
+						<span class="scoreboard-rank">–</span>
+						<span class="scoreboard-name">{{name}}</span>
+						<span class="scoreboard-score">0 pts</span>
+					</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
 
-<div class="results-container">
-	<h2>Results</h2>
-	<table class="results-table">
-		<thead>
-			<tr>
-				<th>Player</th>
-				<th>Base Points</th>
-				<th>Est Wind</th>
-				<th>Mah-Jong</th>
-				<th>Total</th>
-			</tr>
-		</thead>
-		<tbody id="results-body">
-			<!-- I risultati verranno inseriti qui via JS -->
-		</tbody>
-	</table>
+	<div class="center-middle-container">
+		<div class="grid-container">
+			{{#each players}}
+				{{> playerCard this}}
+			{{/each}}
+		</div>
+
+	</div>
+
+	<div class="lateral-middle-container">
+		<div class="scoreboard"></div>
+	</div>
 </div>
+
+<div class="main-container bottom-container">
+	<div class="action-container">
+		<button class="general-button" onclick="calculatePoints()">
+			<i class="fas fa-calculator"></i> Calculate Points
+		</button>
+	</div>
+	<div class="results-container">
+		<h2>Results</h2>
+		<table class="results-table">
+			<thead>
+				<tr>
+					<th>Player</th>
+					<th>Base Points</th>
+					<th>Est Wind</th>
+					<th>Mah-Jong</th>
+					<th>Total</th>
+				</tr>
+			</thead>
+			<tbody id="results-body">
+				<!-- I risultati verranno inseriti qui via JS -->
+			</tbody>
+		</table>
+	</div>
+</div>
+
+
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/public/js/room.js"></script>
