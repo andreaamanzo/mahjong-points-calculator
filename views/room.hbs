@@ -4,13 +4,6 @@
 
 <div class="main-container top-container">
 	<h1 class="page-title">Mah-Jong Room</h1>
-	<div class="code-box">
-		<div>Room code:</div>
-		<div id="roomCode">{{roomCode}}</div>
-		<button id="copy-code-button" class="copy-button" title="Copy to clipboard">
-			<i class="fas fa-copy"></i>
-		</button>
-	</div>
 </div>
 
 <div class="main-container middle-container">
@@ -39,7 +32,46 @@
 	</div>
 
 	<div class="lateral-middle-container">
-		<div class="scoreboard"></div>
+		<div class="room-info-box">
+			<h3 class="scoreboard-title">Room Info</h3>
+
+			<!-- Limit Dropdown -->
+			<div class="info-item form-row">
+				<label for="limit-select"><strong>Limit:</strong></label>
+				<select id="limit-select" class="limit-dropdown">
+					<option value="500/1000">500/1000</option>
+					<option value="1000/2000" selected>1000/2000</option>
+					<option value="2000/4000">2000/4000</option>
+					<option value="3000/6000">3000/6000</option>
+				</select>
+			</div>
+
+			<div class="info-item form-row">
+				<strong>Games Played:</strong> <span id="games-played">0</span>
+			</div>
+
+			<div class="info-item form-row">
+				<strong>Round Wind:</strong> <span id="round-wind">Est</span>
+			</div>
+
+			<div class="info-item wind-rose">
+				<div class="wind-centre">
+					<img src="/public/images/wind-rose.svg" alt="Rosa dei Venti" class="wind-icon" />
+					<div class="wind-label north" id="wind-north">{{windPlayers.[3]}}</div>
+					<div class="wind-label east" id="wind-east">{{windPlayers.[0]}}</div>
+					<div class="wind-label south" id="wind-south">{{windPlayers.[1]}}</div>
+					<div class="wind-label west" id="wind-west">{{windPlayers.[2]}}</div>
+				</div>
+			</div>
+
+			<div class="info-item form-row">
+				<strong>Room Code:</strong> <div id="roomCode">{{roomCode}}</div>
+				<button id="copy-code-button" class="copy-button" title="Copy to clipboard">
+					<i class="fas fa-copy"></i>
+				</button>
+			</div>
+		</div>
+
 	</div>
 </div>
 

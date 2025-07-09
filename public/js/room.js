@@ -10,14 +10,34 @@ socket.emit("register", {
 	roomCode
 })
 
+function updateWindRose(estWindPlayer = null) {
+  const names = Array.from(document.querySelectorAll('.player-name'))
+    .map(el => el.textContent.trim())
+
+	if (estWindPlayer && names.length === 4) {
+		let count = 0;
+    while (names[0] !== estWindPlayer && names.length > 0 && count < 4) {
+      names.push(names.shift());
+			count++
+    }
+		document.getElementById('wind-east').textContent = names[0];
+		document.getElementById('wind-south').textContent = names[1];
+		document.getElementById('wind-west').textContent = names[2];
+		document.getElementById('wind-north').textContent = names[3];
+  } else {
+		document.getElementById('wind-east').textContent = "–";
+		document.getElementById('wind-south').textContent = "–";
+		document.getElementById('wind-west').textContent = "–";
+		document.getElementById('wind-north').textContent = "–";
+	}
+}
+
 document.querySelectorAll('input[type="radio"]').forEach(radio => {
 	radio.addEventListener('click', function () {
 		if (radio.value === "true") {
 			radio.value = "false"
-			radio.checked = false
 		} else {
 			radio.value = "true"
-			radio.checked = true
 		}
 	})
 })
@@ -128,6 +148,19 @@ document.querySelectorAll('[id^="player"][id$="-estWind"]:not([disabled])').forE
 	})
 })
 
+document.getElementById("copy-code-button").addEventListener("click", () => {
+  const code = document.getElementById("roomCode").textContent
+  navigator.clipboard
+    .writeText(code)
+    .then(() => {
+      toastr.success("Room code copied to clipboard!")
+    })
+    .catch((err) => {
+      toastr.error("Failed to copy!")
+    })
+})
+
+
 socket.on("playerPointsUpdated", ({ playerId, points }) => {
 	const input = document.querySelector(`[id="player${playerId}-points"]`)
 	if (input) input.value = points
@@ -140,12 +173,26 @@ socket.on("playerDoublesUpdated", ({ playerId, doubles }) => {
 
 socket.on("playerMahjongUpdated", ({ playerId, mahjong }) => {
 	const input = document.querySelector(`[id="player${playerId}-mahjong"]`)
-	if (input) input.checked = mahjong
+	if (input) {
+		document.querySelectorAll('[id^="player"][id$="-mahjong"]').forEach(element => {
+			element.value = "false"
+		})
+		input.checked = mahjong
+		input.value = mahjong ? "true" : "false"
+	}
 })
 
 socket.on("playerEstWindUpdated", ({ playerId, estWind }) => {
 	const input = document.querySelector(`[id="player${playerId}-estWind"]`)
-	if (input) input.checked = estWind
+	if (input) {
+		document.querySelectorAll('[id^="player"][id$="-estWind"]').forEach(element => {
+			element.value = "false"
+		})
+		input.checked = estWind
+		input.value = estWind ? "true" : "false"
+		if (estWind) updateWindRose(document.getElementById(`player${playerId}-name`).textContent.trim())
+		else updateWindRose(null)
+	}
 })
 
 socket.on("reloadPage", () => {

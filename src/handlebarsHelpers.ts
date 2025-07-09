@@ -5,6 +5,7 @@ export function registerHandlebarsHelpers() {
   Handlebars.registerHelper('neq', (a, b) => a !== b)
   Handlebars.registerHelper('lt', (a, b) => a < b)
   Handlebars.registerHelper('gt', (a, b) => a > b)
+  Handlebars.registerHelper('or', (a, b) => a || b)
   Handlebars.registerHelper('inRange', (a, min, max) => a >= min && a <= max)
   Handlebars.registerHelper('emptySlots', (count, max) => {
     const diff = max - count

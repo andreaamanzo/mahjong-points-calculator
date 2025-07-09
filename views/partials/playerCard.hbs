@@ -1,6 +1,6 @@
 <div class="grid-item {{#if isClientPlayer}}client-player{{/if}}">
   <div class="player-name-container">
-    <span class="player-name" contenteditable="false" id="player{{@index}}-name">
+    <span class="player-name" contenteditable="false" id="player{{id}}-name">
       {{name}}
     </span>
     {{#if isHost}}
@@ -15,21 +15,21 @@
   <div class="input-points-wrapper">
     <div class="input-group">
       <label>Points</label>
-      <input type="number" class="player-input" value="{{playerScore.points}}" min="0" id="player{{id}}-points" {{#unless isEditable}}disabled{{/unless}}/>
+      <input type="number" class="player-input" value="{{playerScore.points}}" min="0" id="player{{id}}-points" {{#unless (or isEditable isClientPlayer)}}disabled{{/unless}}/>
     </div>
     <div class="input-group">
       <label>Doubles</label>
-      <input type="number" class="player-input" value="{{playerScore.doubles}}" min="0" id="player{{id}}-doubles" {{#unless isEditable}}disabled{{/unless}}/>
+      <input type="number" class="player-input" value="{{playerScore.doubles}}" min="0" id="player{{id}}-doubles" {{#unless (or isEditable isClientPlayer)}}disabled{{/unless}}/>
     </div>
   </div>
-  <label class="switch-wrapper {{#unless isEditable}}switch-disabled{{/unless}}">
+  <label class="switch-wrapper {{#unless (or isEditable isClientPlayer)}} switch-disabled{{/unless}}">
     <span class="label-text">Est Wind</span>
-    <input type="radio" name="estWindPlayer" id="player{{id}}-estWind" {{#if playerScore.estWind}}value="true" checked{{/if}} {{#unless isEditable}}disabled{{/unless}}/>
+    <input type="radio" name="estWindPlayer" id="player{{id}}-estWind" {{#if playerScore.estWind}}value="true" checked{{else}}value="false"{{/if}} {{#unless (or isEditable isClientPlayer)}}disabled{{/unless}}/>
     <span class="switch-label"></span>
   </label>
-  <label class="switch-wrapper {{#unless isEditable}}switch-disabled{{/unless}}">
+  <label class="switch-wrapper {{#unless (or isEditable isClientPlayer)}}switch-disabled{{/unless}}">
     <span class="label-text">Mah-Jong</span>
-    <input type="radio" name="mahjongPlayer" id="player{{id}}-mahjong" {{#if playerScore.mahjong}}value="true" checked{{/if}} {{#unless isEditable}}disabled{{/unless}}/>
+    <input type="radio" name="mahjongPlayer" id="player{{id}}-mahjong" {{#if playerScore.mahjong}}value="true" checked{{else}}value="false"{{/if}} {{#unless (or isEditable isClientPlayer)}}disabled{{/unless}}/>
     <span class="switch-label"></span>
   </label>
 </div>

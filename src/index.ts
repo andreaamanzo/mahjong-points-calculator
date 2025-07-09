@@ -83,7 +83,8 @@ app.get('/', (req: Request, res: Response) => {
     name: `Player ${i + 1}`,
     isHost: false,
     isClientPlayer: false,
-    isEditable: true
+    isEditable: true,
+    id: i
   }))
 
   res.render('home', { title: 'Mahjong Points Calculator', players })
@@ -177,10 +178,17 @@ app.get('/room', async (req: Request, res: Response) => {
         ...player,
         playerScore,
         isClientPlayer: player.id === parseInt(playerId),
-        isEditable: player.id === parseInt(playerId)
+        isEditable: false
       }
     })
-    res.render('room', { title: 'Mah-Jong room', players, isHost, roomCode })
+    const estIndex = players.findIndex(p => p.playerScore?.estWind);
+
+    let windPlayers = ['–', '–', '–', '–'];
+    if (estIndex !== -1) {
+      const ordered = [...players.slice(estIndex), ...players.slice(0, estIndex)];
+      windPlayers = ordered.map(p => p.name);
+    }
+    res.render('room', { title: 'Mah-Jong room', players, windPlayers, isHost, roomCode })
   } else {
     res.status(404).render("error", {
       statusCode: 404,
