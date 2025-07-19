@@ -2,7 +2,7 @@ import {
   CreateRoomReturnType,
   DeletePlayerReturnType,
   DeleteRoomReturnType,
-  GetLastRoundReturnType,
+  GetRoundReturnType,
   GetPlayersInRoomReturnType,
   JoinRoomReturnType,
   RenamePlayerReturnType,
@@ -12,6 +12,11 @@ import {
   UpdatePlayerMahjongReturnType,
   UpdatePlayerEstWindReturnType,
   GetPlayerReturnType,
+  GetRoundResultsReturnType,
+  RoundResult,
+  CalculatePointsReturnType,
+  CalculateRoomScoreboardReturnType,
+  UpdateRoundLimitReturnType,
 } from "./types"
 
 import {
@@ -30,6 +35,10 @@ import {
   updatePlayerEstWind,
   getPlayer,
   getRoomFromId,
+  getRound,
+  startNewRound,
+  getRoomRounds,
+  updateRoundLimit,
 } from "./dbComponents"
 
 
@@ -291,7 +300,7 @@ export async function deleteRoomComponent(roomCode: string): Promise<DeleteRoomR
   }
 }
 
-export async function getLastRoundComponent(roomCode: string): Promise<GetLastRoundReturnType> {
+export async function getLastRoundComponent(roomCode: string): Promise<GetRoundReturnType> {
   try {
     const room = await getRoom(roomCode)
     if (!room) {
@@ -316,6 +325,42 @@ export async function getLastRoundComponent(roomCode: string): Promise<GetLastRo
     }
   } catch (error) {
     console.error("Errore nel recupero dell'ultimo round:", error)
+    return {
+      success: false,
+      message: "Database error",
+      round: null
+    }
+  }
+}
+
+export async function getRoundComponent(roomId: number, roundNumber: number): Promise<GetRoundReturnType>
+export async function getRoundComponent(roundId: number): Promise<GetRoundReturnType>
+export async function getRoundComponent(param1: number, param2?: number): Promise<GetRoundReturnType> {
+  try {
+    let round
+    if (param2 !== undefined) {
+      // Caso con roomId e roundNumber
+      round = await getRound(param1, param2)
+    } else {
+      // Caso con roundId
+      round = await getRound(param1)
+    }
+
+    if (!round) {
+      return {
+        success: false,
+        message: "Round not found",
+        round: null
+      }
+    }
+
+    return {
+      success: true,
+      message: "Round retrieved",
+      round
+    }
+  } catch (error) {
+    console.error("Errore nel recupero del round:", error)
     return {
       success: false,
       message: "Database error",
@@ -495,3 +540,218 @@ export async function updatePlayerEstWindComponent(playerId: number, estWind: bo
     }
   }
 }
+
+export async function getRoundResultsComponent(roundId: number): Promise<GetRoundResultsReturnType> {
+  try {
+    const round = await getRound(roundId)
+    if (!round) {
+      return {
+        success: false,
+        message: "Round not found",
+        roundResults: null
+      }
+    }
+
+    const roundResults = await Promise.all(
+      round.scores.map(async (score) => {
+        const player = await getPlayer(score.playerId)
+        return {
+          playerId: score.playerId,
+          playerName: player?.name ?? "",
+          mahjong: score.mahjong,
+          estWind: score.estWind,
+          basePoints: score.points * Math.pow(2, score.doubles + (score.estWind ? 1 : 0)),
+          finalPoints: 0
+        }
+      })
+    ) as [RoundResult, RoundResult, RoundResult, RoundResult]
+
+    roundResults.forEach(player => {
+      const limit = round.limit * (player.estWind ? 2 : 1)
+      if (player.basePoints > limit) player.basePoints = limit
+    })
+
+    roundResults.forEach(player => {
+      if (!player.mahjong) {
+        roundResults.forEach(otherPlayer => {
+          if (!(otherPlayer === player)) {
+            const pointsToPay = player.estWind ? (otherPlayer.basePoints * 2) : (otherPlayer.basePoints)
+            otherPlayer.finalPoints += pointsToPay
+            player.finalPoints -= pointsToPay
+          }
+        })
+      }
+    })
+    return {
+      success: true,
+      message: "Round retrieved",
+      roundResults: roundResults
+    }
+  } catch (error){
+    console.error("Errore nel recuperare i round results:", error)
+    return {
+      success: false,
+      message: "Database error",
+      roundResults: null,
+    }
+  }
+
+} 
+
+export async function calculatePointsComponent(roomCode: string, limit: number): Promise<CalculatePointsReturnType> {
+  const lastRoundResults = await getLastRoundComponent(roomCode)
+  if (!lastRoundResults.success) {
+    return {
+      success: false,
+      message: lastRoundResults.message,
+      roundResults: null
+    }
+  }
+  const mahjong = lastRoundResults.round.scores.find(score => score.mahjong)
+  const estWind = lastRoundResults.round.scores.find(score => score.estWind)
+
+  if (!mahjong || !estWind) {
+    return {
+      success: false,
+      message: "Mahjng or EstWind player not selected",
+      roundResults: null
+    }
+  }
+
+  const roundResultsResults = await getRoundResultsComponent(lastRoundResults.round.id)
+  if (!roundResultsResults.success) {
+    return {
+      success: false,
+      message: roundResultsResults.message,
+      roundResults: null
+    }
+  }
+
+  try {
+    const roomId = (await getRoom(roomCode))?.id
+    if (!roomId) {
+      throw new Error("Can't get roomId")
+    }
+    await startNewRound(roomId)
+
+    return {
+      success: true,
+      message: "Round registrated",
+      roundResults: roundResultsResults.roundResults
+    }
+
+  } catch (error) {
+    console.error("Errore nel calcolo dei punti:", error)
+    return {
+      success: false,
+      message: "Database error",
+      roundResults: null,
+    }
+  }
+
+}
+
+export async function calculateRoomScoreboardComponent(roomCode: string): Promise<CalculateRoomScoreboardReturnType> {
+  try {
+    const players = (await getPlayersInRoomComponent(roomCode)).players
+    if (!players) {
+      return {
+        success: false,
+        message: "Players not found",
+        scoreboard: null,
+        gamesPlayed: null
+      }
+    }
+
+
+    const rounds = await getRoomRounds(roomCode)
+    if (!rounds) {
+      return {
+        success: false,
+        message: "Rounds not found",
+        scoreboard: null,
+        gamesPlayed: null
+      }
+    }
+    rounds.pop()
+    
+    const roundResults = await Promise.all(
+      rounds.map(async (round) => {
+        const result = await getRoundResultsComponent(round.id)
+        if (!result.success) {
+          throw new Error(`Failed to retrieve results for round ${round.id}`)
+        }
+        return result.roundResults
+      })
+    )
+
+
+    const scoreboard = [0, 1, 2, 3].map(i => {
+      return {
+        player: players[i],
+        points: 0,
+      }
+    })
+
+    roundResults.forEach(round => {
+      round.forEach(playerScore => {
+        scoreboard.find(p => p.player.id == playerScore.playerId)!.points += playerScore.finalPoints
+      })
+    })
+
+    scoreboard.sort((a, b) => b.points - a.points)
+
+    return {
+      success: true,
+      message: "Scoreboard calculated",
+      scoreboard,
+      gamesPlayed: roundResults.length
+    }
+
+  } catch (error) {
+    console.error("Errore nel calcolare la scoreboard:", error)
+    return {
+      success: false,
+      message: "Database error",
+      scoreboard: null,
+      gamesPlayed: null
+    }
+  }
+}
+
+export async function updateRoundLimitComponent(roundId: number, newLimit: number): Promise<UpdateRoundLimitReturnType> {
+  try {
+    const round = await getRound(roundId)
+    if (!round) {
+      return {
+        success: false,
+        message: "Round not found",
+        limit: null,
+      }
+    }
+
+    const updatedLimit = await updateRoundLimit(roundId, newLimit)
+
+    if (updatedLimit === null) {
+      return {
+        success: false,
+        message: "Failed to update round limit",
+        limit: null,
+      }
+    }
+
+    return {
+      success: true,
+      message: "Round limit updated successfully",
+      limit: newLimit
+    }
+  } catch (error) {
+    console.error("Errore nell'aggiornamento del limite del round:", error)
+    return {
+      success: false,
+      message: "Database error",
+      limit: null,
+    }
+  }
+}
+

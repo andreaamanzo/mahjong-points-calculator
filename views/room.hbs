@@ -8,17 +8,8 @@
 
 <div class="main-container middle-container">
 	<div class="lateral-middle-container">
-		<div class="scoreboard">
-			<h3 class="scoreboard-title">Scoreboard</h3>
-			<ul id="scoreboard-list">
-				{{#each players}}
-					<li class="scoreboard-item">
-						<span class="scoreboard-rank">–</span>
-						<span class="scoreboard-name">{{name}}</span>
-						<span class="scoreboard-score">0 pts</span>
-					</li>
-				{{/each}}
-			</ul>
+		<div class="scoreboard" id="scoreboard">
+			{{> scoreboard scoreboard=scoreboard}}
 		</div>
 	</div>
 
@@ -39,15 +30,17 @@
 			<div class="info-item form-row">
 				<label for="limit-select"><strong>Limit:</strong></label>
 				<select id="limit-select" class="limit-dropdown">
-					<option value="500/1000">500/1000</option>
-					<option value="1000/2000" selected>1000/2000</option>
-					<option value="2000/4000">2000/4000</option>
-					<option value="3000/6000">3000/6000</option>
+					<option value="500/1000" {{#if (eq roundLimit 500)}}selected{{/if}}>500/1000</option>
+					<option value="1000/2000" {{#if (eq roundLimit 1000)}}selected{{/if}}>1000/2000</option>
+					<option value="2000/4000" {{#if (eq roundLimit 2000)}}selected{{/if}}>2000/4000</option>
+					<option value="3000/6000" {{#if (eq roundLimit 3000)}}selected{{/if}}>3000/6000</option>
 				</select>
 			</div>
 
+
+
 			<div class="info-item form-row">
-				<strong>Games Played:</strong> <span id="games-played">0</span>
+				<strong>Games Played:</strong> <span id="games-played">{{gamesPlayed}}</span>
 			</div>
 
 			<div class="info-item form-row">
@@ -77,26 +70,12 @@
 
 <div class="main-container bottom-container">
 	<div class="action-container">
-		<button class="general-button" onclick="calculatePoints()">
+		<button class="general-button" id="calculate-points-button" onclick="calculatePoints()">
 			<i class="fas fa-calculator"></i> Calculate Points
 		</button>
 	</div>
 	<div class="results-container">
-		<h2>Results</h2>
-		<table class="results-table">
-			<thead>
-				<tr>
-					<th>Player</th>
-					<th>Base Points</th>
-					<th>Est Wind</th>
-					<th>Mah-Jong</th>
-					<th>Total</th>
-				</tr>
-			</thead>
-			<tbody id="results-body">
-				<!-- I risultati verranno inseriti qui via JS -->
-			</tbody>
-		</table>
+		{{> resultsTable roundResults=roundResults}}
 	</div>
 </div>
 

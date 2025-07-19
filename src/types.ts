@@ -24,7 +24,17 @@ export type Round = {
   id: number,
   roundNumber: number,
   roomId: number,
+  limit: number,
   scores: [Score, Score, Score, Score]
+}
+
+export type RoundResult = {
+  playerId: number,
+  playerName: string,
+  basePoints: number,
+  finalPoints: number,
+  estWind: boolean,
+  mahjong: boolean
 }
 
 export type CreateRoomReturnType = {
@@ -79,7 +89,7 @@ export type DeleteRoomReturnType = {
 
 export type StartRoomReturnType = DeleteRoomReturnType
 
-export type GetLastRoundReturnType = {
+export type GetRoundReturnType = {
   success: true,
   message: string,
   round: Round
@@ -88,6 +98,18 @@ export type GetLastRoundReturnType = {
   message: string,
   round: null
 }
+
+export type GetRoundResultsReturnType = {
+  success: true,
+  message: string,
+  roundResults: [RoundResult, RoundResult, RoundResult, RoundResult]
+} | {
+  success: false,
+  message: string,
+  roundResults: null
+}
+
+export type CalculatePointsReturnType =  GetRoundResultsReturnType
 
 export type UpdatePlayerPointsReturnType = {
   success: true,
@@ -104,3 +126,28 @@ export type UpdatePlayerDoublesReturnType = UpdatePlayerPointsReturnType
 export type UpdatePlayerMahjongReturnType = UpdatePlayerPointsReturnType
 
 export type UpdatePlayerEstWindReturnType = UpdatePlayerPointsReturnType
+
+export type UpdateRoundLimitReturnType = {
+  success: true,
+  message: string,
+  limit: number
+} | {
+  success: false,
+  message: string,
+  limit: null
+}
+
+export type CalculateRoomScoreboardReturnType = {
+  success: true,
+  message: string,
+  scoreboard: {
+    player: Player,
+    points: number,
+  }[]
+  gamesPlayed: number
+} | {
+  success: false,
+  message: string,
+  scoreboard: null,
+  gamesPlayed: null
+}

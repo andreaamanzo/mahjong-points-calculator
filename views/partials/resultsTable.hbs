@@ -1,0 +1,23 @@
+<h2>Last Round Results</h2>
+<table class="results-table">
+  <thead>
+    <tr>
+      <th>Player</th>
+      <th>Base Points</th>
+      <th>Est Wind</th>
+      <th>Mah-Jong</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody id="results-body">
+    {{#each roundResults}}
+      <tr>
+        <td>{{playerName}}</td>
+        <td>{{basePoints}}</td>
+        <td>{{#if estWind}}Yes{{else}}No{{/if}}</td>
+        <td>{{#if mahjong}}Yes{{else}}No{{/if}}</td>
+        <td>{{#if (gte finalPoints 0)}}+{{/if}}{{finalPoints}}</td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

@@ -1,0 +1,10 @@
+<h3 class="scoreboard-title">Scoreboard</h3>
+<ul id="scoreboard-list">
+  {{#each scoreboard}}
+    <li class="scoreboard-item">
+      <span class="scoreboard-rank">{{add @index 1}}</span>
+      <span class="scoreboard-name">{{player.name}}</span>
+      <span class="scoreboard-score">{{points}} pts</span>
+    </li>
+  {{/each}}
+</ul>

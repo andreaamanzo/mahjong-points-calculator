@@ -57,7 +57,7 @@ export async function startRoom(roomCode: string): Promise<Room | null> {
 		[roomCode]
 	)
 	await db.pool.execute<ResultSetHeader>(
-		"INSERT INTO rounds (room_id, round_number) VALUES ((SELECT id FROM rooms WHERE code = ?), 1)",
+		"INSERT INTO rounds (room_id, round_number, round_limit) VALUES ((SELECT id FROM rooms WHERE code = ?), 1, 1000)",
 		[roomCode]
 	)
 	const [players] = await db.pool.execute<RowDataPacket[]>(
@@ -84,6 +84,37 @@ export async function startRoom(roomCode: string): Promise<Room | null> {
 
 	return getRoom(roomCode)
 }
+
+export async function startNewRound(roomId: number): Promise<Round | null> {
+  const lastRound = await getLastRound(roomId)
+  if (!lastRound) {
+    throw new Error("Nessun round precedente trovato per questa stanza.")
+  }
+
+  const newRoundNumber = lastRound.roundNumber + 1
+
+  const [roundResult] = await db.pool.execute<ResultSetHeader>(
+    "INSERT INTO rounds (room_id, round_number, round_limit) VALUES (?, ?, ?)",
+    [roomId, newRoundNumber, lastRound.limit]
+  )
+
+  const newRoundId = roundResult.insertId
+
+  const players = await getPlayers(roomId)
+  if (players.length !== 4) {
+    throw new Error("Numero giocatori non valido per iniziare un nuovo round.")
+  }
+
+  for (const player of players) {
+    await db.pool.execute<ResultSetHeader>(
+      "INSERT INTO scores (player_id, round_id, points, doubles, est_wind, mahjong) VALUES (?, ?, 0, 0, 0, 0)",
+      [player.id, newRoundId]
+    )
+  }
+
+  return getRound(roomId, newRoundNumber)
+}
+
 
 export async function createPlayer(roomId: number, playerName: string, isHost: boolean): Promise<Player> {
 	const [playerResult] = await db.pool.execute<ResultSetHeader>(
@@ -238,32 +269,24 @@ export async function getPlayerLastScore(playerId: number): Promise<Score | null
 	return getPlayerScore(playerId, lastRoundNumber)
 }
 
-// export async function getPlayerLastScore(playerId: number): Promise<Score | null> {
-//     const [scoreRows] = await db.pool.execute<RowDataPacket[]>(
-//         "SELECT id, player_id, points, doubles, est_wind, mahjong, round_number FROM scores WHERE player_id = ? ORDER BY round_number DESC LIMIT 1",
-//         [playerId]
-//     )
+export async function getRound(roomId: number, roundNumber: number): Promise<Round | null>
+export async function getRound(roundId: number): Promise<Round | null>
+export async function getRound(param1: number, param2?: number): Promise<Round | null> {
+	let roundRows: RowDataPacket[]
 
-//     if (scoreRows.length === 0) {
-//         return null
-//     }
-
-//     const score = scoreRows[0]
-//     return {
-//         id: score.id,
-//         playerId: score.player_id,
-//         points: score.points,
-//         doubles: score.doubles,
-//         estWind: score.est_wind,
-//         mahjong: score.mahjong
-//     }
-// }
-
-export async function getRound(roomId: number, roundNumber: number): Promise<Round | null> {
-	const [roundRows] = await db.pool.execute<RowDataPacket[]>(
-		"SELECT id, room_id, round_number FROM rounds WHERE room_id = ? AND round_number = ?",
-		[roomId, roundNumber]
-	)
+	if (param2 !== undefined) {
+		// Caso: roomId + roundNumber
+		[roundRows] = await db.pool.execute<RowDataPacket[]>(
+			"SELECT id, room_id, round_number, round_limit FROM rounds WHERE room_id = ? AND round_number = ?",
+			[param1, param2]
+		)
+	} else {
+		// Caso: roundId
+		[roundRows] = await db.pool.execute<RowDataPacket[]>(
+			"SELECT id, room_id, round_number, round_limit FROM rounds WHERE id = ?",
+			[param1]
+		)
+	}
 
 	if (roundRows.length === 0) {
 		return null
@@ -271,8 +294,8 @@ export async function getRound(roomId: number, roundNumber: number): Promise<Rou
 
 	const round = roundRows[0]
 	const players = await getPlayers(round.room_id)
-	
-	if (players.length != 4) {
+
+	if (players.length !== 4) {
 		return null
 	}
 
@@ -286,8 +309,30 @@ export async function getRound(roomId: number, roundNumber: number): Promise<Rou
 		id: round.id,
 		roundNumber: round.round_number,
 		roomId: round.room_id,
+		limit: round.round_limit,
 		scores: scores as [Score, Score, Score, Score]
 	}
+}
+
+export async function getRoomRounds(roomCode: string): Promise<Round[] | null> {
+	const room = await getRoom(roomCode)
+	if (!room) {
+		return null
+	}
+
+	const [roundRows] = await db.pool.execute<RowDataPacket[]>(
+		"SELECT id, room_id, round_number FROM rounds WHERE room_id = ? ORDER BY round_number ASC",
+		[room.id]
+	)
+
+	const rounds: Round[] = []
+	for (const roundRow of roundRows) {
+		const round = await getRound(roundRow.id)
+		if (round)
+			rounds.push(round)
+	}
+
+	return rounds
 }
 
 export async function getLastRound(roomId: number): Promise<Round | null> {
@@ -383,4 +428,19 @@ export async function updatePlayerEstWind(playerId: number, roundNumber: number,
 	}
 
 	return getPlayerScore(playerId, roundNumber)
+}
+
+export async function updateRoundLimit(roundId: number, newLimit: number): Promise<number | null> {
+  const [result] = await db.pool.execute<ResultSetHeader>(
+    `UPDATE rounds 
+     SET round_limit = ? 
+     WHERE id = ?`,
+    [newLimit, roundId]
+  )
+
+  if (result.affectedRows === 0) {
+    return null
+  }
+
+  return newLimit
 }

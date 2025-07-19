@@ -18,7 +18,12 @@ import {
   updatePlayerDoublesComponent,
   updatePlayerMahjongComponent,
   updatePlayerEstWindComponent,
-  getPlayerComponent
+  getPlayerComponent,
+  calculatePointsComponent,
+  getRoundResultsComponent,
+  getRoundComponent,
+  calculateRoomScoreboardComponent,
+  updateRoundLimitComponent
 } from "./components"
 import { getRoom } from "./dbComponents"
 
@@ -165,13 +170,30 @@ app.post("/lobby-room/partial", async (req, res) => {
 app.get('/room', async (req: Request, res: Response) => {
   const { isHost: host, roomCode, playerId } = req.query as { isHost: string, roomCode: string, playerId: string }
   const isHost = (host === "true")
-  const room = await getRoom(roomCode)
-  if (!(room?.isStarted)) {
-    return res.redirect(`/lobby-room?isHost=${isHost}&roomCode=${roomCode}&playerId=${playerId}`)
-  }
-  const playersResults = await getPlayersInRoomComponent(roomCode)
-  const lastRoundResults = await getLastRoundComponent(roomCode)
-  if (playersResults.success && lastRoundResults.success) {
+
+  try {
+    const room = await getRoom(roomCode)
+    if (!room) {
+      return res.status(404).render("error", {
+        statusCode: 404,
+        title: "Room Not Found",
+        message: `The room code "${roomCode}" does not exist or is no longer available.`
+      })
+    }
+
+    if (!room.isStarted) {
+      return res.redirect(`/lobby-room?isHost=${isHost}&roomCode=${roomCode}&playerId=${playerId}`)
+    }
+
+    const playersResults = await getPlayersInRoomComponent(roomCode)
+    const lastRoundResults = await getLastRoundComponent(roomCode)
+
+    if (!playersResults.success || !lastRoundResults.success) {
+      throw new Error("Failed to retrieve room data. Please try again later.")
+    }
+
+    const roundLimit = lastRoundResults.round.limit
+
     const players = playersResults.players.map(player => {
       const playerScore = lastRoundResults.round.scores.find(s => s.playerId == player.id)
       return {
@@ -181,20 +203,73 @@ app.get('/room', async (req: Request, res: Response) => {
         isEditable: false
       }
     })
-    const estIndex = players.findIndex(p => p.playerScore?.estWind);
 
-    let windPlayers = ['–', '–', '–', '–'];
+    const estIndex = players.findIndex(p => p.playerScore?.estWind)
+    let windPlayers = ['–', '–', '–', '–']
+
     if (estIndex !== -1) {
-      const ordered = [...players.slice(estIndex), ...players.slice(0, estIndex)];
-      windPlayers = ordered.map(p => p.name);
+      const ordered = [...players.slice(estIndex), ...players.slice(0, estIndex)]
+      windPlayers = ordered.map(p => p.name)
     }
-    res.render('room', { title: 'Mah-Jong room', players, windPlayers, isHost, roomCode })
-  } else {
-    res.status(404).render("error", {
-      statusCode: 404,
-      title: "Room Not Found",
-      message: `The room code "${roomCode}" does not exist or is no longer available.`
+
+    let roundResults = null
+    if (lastRoundResults.round.roundNumber > 1) {
+      const roundResuls = await getRoundComponent(room.id, lastRoundResults.round.roundNumber - 1)
+      if (!roundResuls.success) {
+        throw new Error("Failed to retrieve previous round data.")
+      }
+      
+      const roundResultsResults = await getRoundResultsComponent(roundResuls.round.id)
+      if (!roundResultsResults.success) {
+        throw new Error("Failed to retrieve round results.")
+      }
+
+      roundResults = roundResultsResults.roundResults
+    }
+
+    const scoreboardResults = await calculateRoomScoreboardComponent(roomCode)
+    if (!scoreboardResults.success) {
+      throw new Error("Failed to retrieve scoreboard.")
+    }
+
+    const scoreboard = scoreboardResults.scoreboard
+
+    const gamesPlayed = scoreboardResults.gamesPlayed
+
+    // const winds = ["Est", "South", "West", "North"]
+
+    res.render('room', { 
+      title: 'Mah-Jong room', 
+      players, 
+      windPlayers, 
+      roundResults, 
+      scoreboard,
+      isHost, 
+      roomCode ,
+      roundLimit,
+      gamesPlayed
     })
+  } catch (error) {
+    console.error("Errore nella gestione della stanza:", error)
+    res.status(500).render("error", {
+      statusCode: 500,
+      title: "Internal Server Error",
+      message: "An unexpected error occurred. Please try again later."
+    })
+  }
+})
+
+app.post('/room/partial/resultsTable', async (req, res) => {
+  const roundResults = req.body.roundResults
+  try {
+    if (roundResults) {
+      res.render("partials/resultsTable", { layout: false, roundResults })
+    } else {
+      throw new Error(`Round results not found or unavailable.`)
+    }
+  } catch (err) {
+    console.error("Errore nella route /room/partial/resultsTable", err)
+    res.status(500).send("Errore interno del server")
   }
 })
 
@@ -293,6 +368,46 @@ app.post('/api/update-estWind', async (req: Request, res: Response) => {
     res.send(results)
   } else {
     res.status(500).send(results)
+  }
+})
+
+app.post('/api/update-round-limit', async (req: Request, res: Response) => {
+  const { newLimit, roomCode } = req.body as { newLimit: number, roomCode: string }
+
+  const lastRoundResults = await getLastRoundComponent(roomCode)
+
+  if (!lastRoundResults.success) {
+    res.status(500).send(lastRoundResults)
+  }
+  const roundId = lastRoundResults.round!.id
+  const results = await updateRoundLimitComponent(roundId, newLimit)
+
+  if (results.success) {
+    io.to(roomCode).emit("roundLimitUpdated", { roundId, newLimit })
+    res.send(results)
+  } else {
+    res.status(500).send(results)
+  }
+})
+
+app.post('/api/calculate-points', async (req: Request, res: Response) => {
+  const { roomCode, limit } = req.body as { roomCode: string, limit: number }
+  const results = await calculatePointsComponent(roomCode, limit)
+  if (results.success) {
+    io.to(roomCode).emit("reloadPage")
+    res.json(results)
+  } else {
+    res.status(500).json(results)
+  }
+})
+
+app.post('/api/get-scoreboard', async (req:Request, res: Response) => {
+  const { roomCode } = req.body as { roomCode: string }
+  const results = await calculateRoomScoreboardComponent(roomCode)
+  if (results.success) {
+    res.json(results)
+  } else {
+    res.status(500).json(results)
   }
 })
 
